@@ -23,7 +23,7 @@ class Tolov(models.Model):
     izoh = models.TextField(null=True, blank=True)
 
     # agar yotoq uchun bo'lsa:
-    kun_soni = models.PositiveSmallIntegerField(default=1)
+    kun_soni = models.PositiveSmallIntegerField(blank=True, null=True)
 
     def __str__(self):
         return str(self.bemor) + " " + str(self.summa) + " " + self.maqsadi
