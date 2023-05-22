@@ -37,7 +37,7 @@ class Xulosa(models.Model):
     kim_tomonidan = models.CharField(max_length=100)
 
     def __str__(self):
-        return str(self.bemor), self.kim_tomonidan
+        return str(self.bemor) + " - " + self.kim_tomonidan
 
 
 class Xona(models.Model):
