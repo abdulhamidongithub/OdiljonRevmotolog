@@ -68,6 +68,27 @@ class XulosaModelViewSet(ModelViewSet):
     queryset = Xulosa.objects.all()
     serializer_class = XulosaSerializer
 
+    def list(self, request, *args, **kwargs):
+        queryset = Xulosa.objects.all()
+        serializer = XulosaReadSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = XulosaReadSerializer(instance)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        xulosa = request.data
+        serializer = XulosaSerializer(data=xulosa)
+        if serializer.is_valid():
+            serializer.save()
+            tolov = Tolov.objects.get(id=xulosa.get('tolov_id'))
+            tolov.xulosa_holati = 'Kiritildi'
+            tolov.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class XonaModelViewSet(ModelViewSet):
     queryset = Xona.objects.all()
     serializer_class = XonaSerializer
@@ -75,6 +96,39 @@ class XonaModelViewSet(ModelViewSet):
 class JoylashtirishModelViewSet(ModelViewSet):
     queryset = Joylashtirish.objects.all()
     serializer_class = JoylashtirishSerializer
+
+    def create(self, request, *args, **kwargs):
+        joylashish = request.data
+        qarovchi_bor = joylashish.get('qarovchi')
+        xona = Xona.objects.get(id=joylashish.get('xona_id'))
+        if (qarovchi_bor and xona.bosh_joy_soni < 2) or (qarovchi_bor == False and xona.bosh_joy_soni < 1):
+            return Response({"xabar": "Yetarli bo'sh joy mavjud emas"})
+        serializer = JoylashtirishSerializer(data=joylashish)
+        if serializer.is_valid():
+            serializer.save()
+            patient = Bemor.objects.get(id=joylashish.get('bemor_id'))
+            patient.joylashgan = True
+            patient.save()
+            if qarovchi_bor:
+                xona.bosh_joy_soni -= 2
+            else:
+                xona.bosh_joy_soni -= 1
+            xona.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        joylashtirish = self.get_object()
+        data = request.data
+        serializer = JoylashtirishSerializer(joylashtirish, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            patient = Bemor.objects.get(id=joylashtirish.bemor_id.id)
+            patient.joylashgan = False
+            patient.save()
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class XulosaShablonModelViewSet(ModelViewSet):
     queryset = XulosaShablon.objects.all()

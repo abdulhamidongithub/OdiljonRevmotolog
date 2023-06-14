@@ -9,6 +9,7 @@ class Bemor(models.Model):
     manzil = models.CharField(max_length=150)
     balans = models.IntegerField(default=0)
     royhatdan_otgan_sana = models.DateField(auto_now_add=True, null=True, blank=True)
+    joylashgan = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.ism} {self.familiya}"
@@ -52,7 +53,7 @@ class Tolov(models.Model):
         ('Topshirilyapti', 'Topshirilyapti'),
         ('Kutyapti', 'Kutyapti'),
         ('Kiritildi', 'Kiritildi'),
-    ))
+    ), default="Topshirilyapti")
     ozgartirilgan_sana = models.DateField(null=True, blank=True, auto_now=True)
     # kun_soni = models.PositiveSmallIntegerField(blank=True, null=True)
 
@@ -64,10 +65,11 @@ class Xulosa(models.Model):
     xulosa_matni = models.TextField()
     sana = models.DateField(auto_now_add=True)
     tolov_id = models.ForeignKey(Tolov, on_delete=models.CASCADE)    # 3
+    chop_etildi = models.BooleanField(default=False)
     # kim_tomonidan = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.bemor_id.ism}, {self.xulosa_matni[:50]}"
+        return f"{self.tolov_id.bemor_id.ism}, {self.xulosa_matni[:50]}"
 
 
 class XulosaShablon(models.Model):

@@ -7,6 +7,11 @@ class BemorSerializer(ModelSerializer):
         model = Bemor
         fields = '__all__'
 
+class YollanmaSerializer(ModelSerializer):
+    class Meta:
+        model = Yollanma
+        fields = '__all__'
+
 class TolovSerializer(ModelSerializer):
     class Meta:
         model = Tolov
@@ -14,11 +19,18 @@ class TolovSerializer(ModelSerializer):
 
 class TolovReadSerializer(ModelSerializer):
     bemor_id = BemorSerializer(read_only=True)
+    yollanma_id = YollanmaSerializer(read_only=True)
     class Meta:
         model = Tolov
         fields = '__all__'
 
 class XulosaSerializer(ModelSerializer):
+    class Meta:
+        model = Xulosa
+        fields = '__all__'
+
+class XulosaReadSerializer(ModelSerializer):
+    tolov_id = TolovReadSerializer(read_only=True)
     class Meta:
         model = Xulosa
         fields = '__all__'
@@ -38,8 +50,5 @@ class XulosaShablonSerializer(ModelSerializer):
         model = XulosaShablon
         fields = '__all__'
 
-class YollanmaSerializer(ModelSerializer):
-    class Meta:
-        model = Yollanma
-        fields = '__all__'
+
 
