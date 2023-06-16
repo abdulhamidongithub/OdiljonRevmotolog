@@ -106,7 +106,17 @@ class JoylashtirishModelViewSet(ModelViewSet):
         serializer = JoylashtirishSerializer(data=joylashish)
         if serializer.is_valid():
             serializer.save()
-            patient = Bemor.objects.get(id=joylashish.get('bemor_id'))
+            joy = Joylashtirish.objects.get(id=serializer.data.get('id'))
+            patient = Bemor.objects.get(id=joy.bemor_id.id)
+            if joy.yotgan_kun_soni:
+                s = int(joy.yotgan_kun_soni) * int(joy.xona_id.joy_narxi)
+            else:
+                s = 0
+            Tolov.objects.create(
+                bemor_id = patient,
+                joylashtirish_id = joy,
+                summa = s
+            )
             patient.joylashgan = True
             patient.save()
             if qarovchi_bor:

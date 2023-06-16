@@ -37,7 +37,7 @@ class Joylashtirish(models.Model):
     kelish_sanasi = models.DateField()
     ketish_sanasi = models.DateField(null=True, blank=True)  # ketgandan so'ng tahrirlanadi
     qarovchi = models.BooleanField(default=False)
-    yotgan_kun_soni = models.PositiveSmallIntegerField(null=True, blank=True)
+    yotgan_kun_soni = models.PositiveSmallIntegerField(default=0, null=True, blank=True)
     def __str__(self):
         return f'{self.bemor_id.ism}. {self.xona_id.qavat}, {self.xona_id.raqami}'
 
