@@ -11,12 +11,21 @@ class BemorSerializer(ModelSerializer):
     def to_representation(self, instance):
         data = super(BemorSerializer, self).to_representation(instance)
         hozirgi_bemor = Bemor.objects.get(id=data.get('id'))
+        joylashishlar = Joylashtirish.objects.filter(bemor_id=hozirgi_bemor)
+        serializer_ = JoylashtirishSerializer(joylashishlar, many=True)
         tolovlari = Tolov.objects.filter(bemor_id=hozirgi_bemor)
         serializer = TolovReadBemorUchun(tolovlari, many=True)
-        data.update({'tolovlar': serializer.data})
+        data.update({'tolovlar': serializer.data, 'joylashishlar': serializer_.data})
         return data
 
+
+class XulosaShablonSerializer(ModelSerializer):
+    class Meta:
+        model = XulosaShablon
+        fields = '__all__'
+
 class YollanmaSerializer(ModelSerializer):
+    xulosa_shablon_id = XulosaShablonSerializer(read_only=True)
     class Meta:
         model = Yollanma
         fields = '__all__'
@@ -26,22 +35,32 @@ class TolovSerializer(ModelSerializer):
         model = Tolov
         fields = '__all__'
 
+class XonaSerializer(ModelSerializer):
+    class Meta:
+        model = Xona
+        fields = '__all__'
+
 class JoylashtirishSerializer(ModelSerializer):
     class Meta:
         model = Joylashtirish
         fields = '__all__'
 
+class JoylashtirishReadSerializer(ModelSerializer):
+    xona_id = XonaSerializer(read_only=True)
+    class Meta:
+        model = Joylashtirish
+        fields = '__all__'
+
 class TolovReadSerializer(ModelSerializer):
-    bemor_id = BemorSerializer(read_only=True)
+    # bemor_id = BemorSerializer(read_only=True)
     yollanma_id = YollanmaSerializer(read_only=True)
-    joylashtirish_id = JoylashtirishSerializer(read_only=True)
+    joylashtirish_id = JoylashtirishReadSerializer(read_only=True)
     class Meta:
         model = Tolov
         fields = '__all__'
 
 class TolovReadBemorUchun(ModelSerializer):
     yollanma_id = YollanmaSerializer(read_only=True)
-    joylashtirish_id = JoylashtirishSerializer(read_only=True)
     class Meta:
         model = Tolov
         fields = '__all__'
@@ -57,15 +76,8 @@ class XulosaReadSerializer(ModelSerializer):
         model = Xulosa
         fields = '__all__'
 
-class XonaSerializer(ModelSerializer):
-    class Meta:
-        model = Xona
-        fields = '__all__'
 
-class XulosaShablonSerializer(ModelSerializer):
-    class Meta:
-        model = XulosaShablon
-        fields = '__all__'
+
 
 
 

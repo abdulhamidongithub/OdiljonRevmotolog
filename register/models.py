@@ -24,12 +24,30 @@ class Xona(models.Model):
     def __str__(self):
         return f'{self.qavat} - qavat. {self.raqami} - xona'
 
+
+class XulosaShablon(models.Model):
+    xulosa_name = models.TextField()
+    text_xulosa = models.TextField(null=True, blank=True)
+    def __str__(self):
+        return self.xulosa_name
+
 class Yollanma(models.Model):
     nom = models.CharField(max_length=300)
     narx = models.IntegerField()
     qayerga = models.CharField(max_length=50)  # Labaratoriya, UZI, EKG, Doktor
+    xulosa_shablon_id = models.ForeignKey(XulosaShablon, on_delete=models.SET_NULL, null=True, blank=True)
     def __str__(self):
-        return self.nom
+        if self.xulosa_shablon_id:
+            return f"{self.nom}. Xulosa shabloni: \n" \
+                   f"Name: {self.xulosa_shablon_id.xulosa_name}. Text: {self.xulosa_shablon_id.text_xulosa}"
+        return f"{self.nom}."
+
+    def save(self, *args, **kwargs):
+        new_one = XulosaShablon.objects.create(
+            xulosa_name = self.nom
+        )
+        self.xulosa_shablon_id = new_one
+        super(Yollanma, self).save(*args, **kwargs)
 
 class Joylashtirish(models.Model):
     bemor_id = models.ForeignKey(Bemor, on_delete=models.CASCADE)
@@ -53,8 +71,9 @@ class Tolov(models.Model):
         ('Topshirilyapti', 'Topshirilyapti'),
         ('Kutyapti', 'Kutyapti'),
         ('Kiritildi', 'Kiritildi'),
-    ), default="Topshirilyapti")
-    ozgartirilgan_sana = models.DateField(null=True, blank=True, auto_now=True)
+    ))
+    tolangan_sana = models.DateField(null=True, blank=True)
+    ozgartirilgan_sana = models.DateField(null=True, blank=True)
     # kun_soni = models.PositiveSmallIntegerField(blank=True, null=True)
 
     def __str__(self):
@@ -64,19 +83,11 @@ class Tolov(models.Model):
 class Xulosa(models.Model):
     xulosa_matni = models.TextField()
     sana = models.DateField(auto_now_add=True)
-    tolov_id = models.ForeignKey(Tolov, on_delete=models.CASCADE)    # 3
+    tolov_id = models.ForeignKey(Tolov, on_delete=models.CASCADE)
     chop_etildi = models.BooleanField(default=False)
     # kim_tomonidan = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return f"{self.tolov_id.bemor_id.ism}, {self.xulosa_matni[:50]}"
-
-
-class XulosaShablon(models.Model):
-    xulosa_name = models.TextField()
-    text_xulosa = models.TextField()
-    def __str__(self):
-        return self.xulosa_name
-
 
 

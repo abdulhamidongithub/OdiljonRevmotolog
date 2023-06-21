@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet, ViewSet
 from rest_framework.views import APIView
+import datetime
 
 from .serializers import *
 from .models import *
@@ -64,6 +65,14 @@ class TolovModelViewSet(ModelViewSet):
         serializer = TolovReadSerializer(instance)
         return Response(serializer.data)
 
+    def create(self, request, *args, **kwargs):
+        tolov = request.data
+        serializer = TolovSerializer(data=tolov)
+        if serializer.is_valid():
+            serializer.save(xulosa_holati="Topshirilyapti")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+
 class XulosaModelViewSet(ModelViewSet):
     queryset = Xulosa.objects.all()
     serializer_class = XulosaSerializer
@@ -85,6 +94,7 @@ class XulosaModelViewSet(ModelViewSet):
             serializer.save()
             tolov = Tolov.objects.get(id=xulosa.get('tolov_id'))
             tolov.xulosa_holati = 'Kiritildi'
+            tolov.ozgartirilgan_sana = datetime.date.today()
             tolov.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -96,6 +106,14 @@ class XonaModelViewSet(ModelViewSet):
 class JoylashtirishModelViewSet(ModelViewSet):
     queryset = Joylashtirish.objects.all()
     serializer_class = JoylashtirishSerializer
+
+    def list(self, request, *args, **kwargs):
+        serializer = JoylashtirishReadSerializer(self.queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, *args, **kwargs):
+        serializer = JoylashtirishReadSerializer(self.get_object())
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         joylashish = request.data
@@ -136,7 +154,12 @@ class JoylashtirishModelViewSet(ModelViewSet):
             patient = Bemor.objects.get(id=joylashtirish.bemor_id.id)
             patient.joylashgan = False
             patient.save()
-            serializer.save()
+            xona = Xona.objects.get(id=joylashtirish.xona_id.id)
+            if joylashtirish.qarovchi:
+                xona.bosh_joy_soni += 2
+            else:
+                xona.bosh_joy_soni += 1
+            xona.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
