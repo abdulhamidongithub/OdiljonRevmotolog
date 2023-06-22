@@ -91,4 +91,12 @@ class Xulosa(models.Model):
     def __str__(self):
         return f"{self.tolov_id.bemor_id.ism}, {self.xulosa_matni[:50]}"
 
+class TolovQaytarish(models.Model):
+    summa = models.IntegerField()
+    sana = models.DateField(auto_now_add=True)
+    izoh = models.CharField(max_length=300)
+    tolov_id = models.ForeignKey(Tolov, on_delete=models.SET_NULL, null=True)
+    def __str__(self):
+        return self.izoh
+
 

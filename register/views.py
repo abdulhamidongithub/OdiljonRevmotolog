@@ -12,6 +12,25 @@ class BemorModelViewSet(ModelViewSet):
     queryset = Bemor.objects.all()
     serializer_class = BemorSerializer
 
+    def get_queryset(self):
+        queryset = Bemor.objects.all()
+        ismi = self.request.query_params.get('ism')
+        fam = self.request.query_params.get('familiya')
+        sharif = self.request.query_params.get('sharif')
+        teli = self.request.query_params.get('tel')
+        pasporti = self.request.query_params.get('pasport_seriya')
+        if ismi:
+            queryset = queryset.filter(ism__contains=ismi)
+        if fam:
+            queryset = queryset.filter(familiya__contains=fam)
+        if sharif:
+            queryset = queryset.filter(sharif=sharif)
+        if teli:
+            queryset = queryset.filter(tel=teli)
+        if pasporti:
+            queryset = queryset.filter(pasport_seriya=pasporti)
+        return queryset
+
     @action(detail=True)
     def tolovlar(self, request, pk):
         bemor = Bemor.objects.get(id=pk)
