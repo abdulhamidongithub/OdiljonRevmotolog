@@ -27,7 +27,8 @@ class Xona(models.Model):
 
 class XulosaShablon(models.Model):
     xulosa_name = models.TextField()
-    text_xulosa = models.TextField(null=True, blank=True)
+    header_text = models.TextField(null=True, blank=True)
+    footer_text = models.TextField(null=True, blank=True)
     def __str__(self):
         return self.xulosa_name
 
@@ -39,7 +40,7 @@ class Yollanma(models.Model):
     def __str__(self):
         if self.xulosa_shablon_id:
             return f"{self.nom}. Xulosa shabloni: \n" \
-                   f"Name: {self.xulosa_shablon_id.xulosa_name}. Text: {self.xulosa_shablon_id.text_xulosa}"
+                   f"Name: {self.xulosa_shablon_id.xulosa_name}. Text: {self.xulosa_shablon_id.header_text}"
         return f"{self.nom}."
 
     def save(self, *args, **kwargs):
