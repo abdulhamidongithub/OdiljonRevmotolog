@@ -76,8 +76,9 @@ class XulosaReadSerializer(ModelSerializer):
         model = Xulosa
         fields = '__all__'
 
-
-
-
+class TolovQaytarishSerializer(ModelSerializer):
+    class Meta:
+        model = TolovQaytarish
+        fields = '__all__'
 
 
