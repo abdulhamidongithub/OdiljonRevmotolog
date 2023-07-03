@@ -98,10 +98,12 @@ class TolovModelViewSet(ModelViewSet):
     def update(self, request, *args, **kwargs):
         tolov = request.data
         t = self.get_object()
-        serializer = TolovSerializer(t, data=tolov)
+        serializer = TolovPatch(t, data=tolov)
         if serializer.is_valid():
-            if t.joylashtirish_id is not None and t.joylashtirish_id.ketish_sanasi is not None and serializer.validated_data.get('summa') == serializer.validated_data.get('tolangan_summa'):
+            if t.joylashtirish_id is not None and t.joylashtirish_id.ketish_sanasi is not None and t.summa == serializer.validated_data.get('tolangan_summa'):
                 serializer.save(tolandi=True)
+            elif t.joylashtirish_id is not None and t.joylashtirish_id.ketish_sanasi is not None and t.summa < serializer.validated_data.get('tolangan_summa'):
+                serializer.save(tolandi=False, haqdor=True)
             else:
                 serializer.save(tolandi=False)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -206,6 +208,9 @@ class JoylashtirishModelViewSet(ModelViewSet):
                 if tolov.summa < tolov.tolangan_summa:
                     tolov.haqdor = True
                     tolov.tolandi = False
+                elif tolov.summa == tolov.tolangan_summa:
+                    tolov.tolandi = True
+                    tolov.haqdor = False
                 tolov.save()
                 xona.save()
             return Response(serializer.data, status=status.HTTP_200_OK)

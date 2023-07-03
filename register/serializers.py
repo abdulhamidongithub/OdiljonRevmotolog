@@ -76,9 +76,15 @@ class XulosaReadSerializer(ModelSerializer):
         model = Xulosa
         fields = '__all__'
 
+
 class TolovQaytarishSerializer(ModelSerializer):
     class Meta:
         model = TolovQaytarish
         fields = '__all__'
 
+
+class TolovPatch(ModelSerializer):
+    class Meta:
+        model = Tolov
+        fields =["tolangan_summa", "tolangan_sana", "tolandi"]
 
