@@ -63,7 +63,8 @@ class Joylashtirish(models.Model):
 class Tolov(models.Model):
     bemor_id = models.ForeignKey(Bemor, on_delete=models.SET_NULL, null=True)
     summa = models.PositiveBigIntegerField()
-    tolangan_summa = models.PositiveBigIntegerField(default=0)
+    # tolangan_summa = models.PositiveBigIntegerField(default=0)
+    tolangan_summa = models.JSONField(null=True, blank=True, default=[])
     sana = models.DateField(auto_now_add=True)
     turi = models.CharField(choices=(('Naqd', 'Naqd'), ('Plastik', 'Plastik')), blank=True, max_length=50)
     tolandi = models.BooleanField(default=False)  # to'landi, qarzdor
@@ -100,5 +101,13 @@ class TolovQaytarish(models.Model):
     tolov_id = models.ForeignKey(Tolov, on_delete=models.SET_NULL, null=True)
     def __str__(self):
         return self.izoh
+
+# class QoshimchaTolov(models.Model):
+#     summa = models.IntegerField()
+#     sana = models.DateField(auto_now_add=True)
+#     izoh = models.CharField(max_length=300)
+#     tolov_id = models.ForeignKey(Tolov, on_delete=models.SET_NULL, null=True)
+#     def __str__(self):
+#         return self.izoh
 
 

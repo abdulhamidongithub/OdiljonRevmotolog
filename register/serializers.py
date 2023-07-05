@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from rest_framework.serializers import *
 
 from .models import *
@@ -87,4 +88,5 @@ class TolovPatch(ModelSerializer):
     class Meta:
         model = Tolov
         fields =["tolangan_summa", "tolangan_sana", "tolandi"]
+
 
