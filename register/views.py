@@ -1,37 +1,39 @@
+from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 import datetime
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
+
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+from .serializers import CustomTokenObtainPairSerializer
+
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .serializers import *
 from .models import *
 
-
-class CustomAuthToken(ObtainAuthToken):
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data,
-                                       context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({
-            'token': token.key,
-            'user_id': user.pk,
-            'role': user.first_name
-        })
+class CustomTokenObtainPairView(TokenObtainPairView):
+    # Replace the serializer with your custom
+    serializer_class = CustomTokenObtainPairSerializer
 
 class BemorModelViewSet(ModelViewSet):
     queryset = Bemor.objects.all()
     serializer_class = BemorSerializer
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    # def list(self, request, *args, **kwargs):
+    #     if request.user.is_authenticated:
+    #         bemorlar = Bemor.objects.all()
+    #         serializer = BemorSerializer(bemorlar, many=True)
+    #         return Response(serializer.data)
+    #     return Response({"message": "Login required"})
 
     def get_queryset(self):
         queryset = Bemor.objects.all()
@@ -61,7 +63,7 @@ class BemorModelViewSet(ModelViewSet):
 class TolovModelViewSet(ModelViewSet):
     queryset = Tolov.objects.all()
     serializer_class = TolovSerializer
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -123,18 +125,29 @@ class TolovModelViewSet(ModelViewSet):
         serializer = TolovPatch(t, data=tolov)
         if serializer.is_valid():
             if t.joylashtirish_id is not None and t.joylashtirish_id.ketish_sanasi is not None and t.summa == serializer.validated_data.get('tolangan_summa'):
-                serializer.save(tolandi=True)
+                t.tolangan_summa = serializer.validated_data.get('tolangan_summa')
+                t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
+                t.tolandi = True
+                t.save()
             elif t.joylashtirish_id is not None and t.joylashtirish_id.ketish_sanasi is not None and t.summa < serializer.validated_data.get('tolangan_summa'):
-                serializer.save(tolandi=False, haqdor=True)
+                t.tolangan_summa = serializer.validated_data.get('tolangan_summa')
+                t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
+                t.tolandi = False
+                t.haqdor = True
+                t.save()
             else:
-                serializer.save(tolandi=False)
+                t.tolangan_summa = serializer.validated_data.get('tolangan_summa')
+                t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
+                t.tolandi = False
+                t.save()
+            print(tolov, serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
 
 class XulosaModelViewSet(ModelViewSet):
     queryset = Xulosa.objects.all()
     serializer_class = XulosaSerializer
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
@@ -163,13 +176,13 @@ class XulosaModelViewSet(ModelViewSet):
 class XonaModelViewSet(ModelViewSet):
     queryset = Xona.objects.all()
     serializer_class = XonaSerializer
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
 class JoylashtirishModelViewSet(ModelViewSet):
     queryset = Joylashtirish.objects.all()
     serializer_class = JoylashtirishSerializer
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
@@ -202,7 +215,8 @@ class JoylashtirishModelViewSet(ModelViewSet):
                 Tolov.objects.create(
                     bemor_id = patient,
                     joylashtirish_id = joy,
-                    summa = s
+                    summa = s,
+                    tolangan_summa = []
                 )
                 patient.joylashgan = True
                 patient.save()
@@ -250,19 +264,19 @@ class JoylashtirishModelViewSet(ModelViewSet):
 class XulosaShablonModelViewSet(ModelViewSet):
     queryset = XulosaShablon.objects.all()
     serializer_class = XulosaShablonSerializer
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
 class YollanmaModelViewSet(ModelViewSet):
     queryset = Yollanma.objects.all()
     serializer_class = YollanmaSerializer
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
 class BoshXonalarModelViewSet(ModelViewSet):
     queryset = Xona.objects.filter(bosh_joy_soni__gt=0)
     serializer_class = XonaSerializer
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -278,7 +292,7 @@ class BoshXonalarModelViewSet(ModelViewSet):
 class TolovQaytarishViewSet(ModelViewSet):
     queryset = TolovQaytarish.objects.all()
     serializer_class = TolovQaytarishSerializer
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
@@ -295,4 +309,21 @@ class TolovQaytarishViewSet(ModelViewSet):
                 tolov.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class LoginView(APIView):
+    def post(self, request):
+        data = request.data
+        user = authenticate(username=data.get("username"),
+                     password=data.get("password"))
+        if user is None:
+            return Response({"success":"False", "message": "User topilmadi"}, status=status.HTTP_400_BAD_REQUEST)
+        login(request, user)
+        serializer = UserReadSerializer(user)
+        return Response(serializer.data)
+
+class LogoutView(APIView):
+    def get(self, request):
+        logout(request)
+        return Response({"success":"True", "message": "User logout qilindi"})
+
 

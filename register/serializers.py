@@ -1,8 +1,21 @@
 from django.contrib.auth.models import User
+from rest_framework import serializers
 from rest_framework.serializers import *
 
 from .models import *
 
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        # The default result (access/refresh tokens)
+        data = super(CustomTokenObtainPairSerializer, self).validate(attrs)
+        # Custom data you want to include
+        data.update({'role': self.user.first_name})
+        data.update({"token": data.pop('access')})
+        # and everything else you want to send in the response
+        return data
 
 class BemorSerializer(ModelSerializer):
     class Meta:
@@ -84,9 +97,19 @@ class TolovQaytarishSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class TolovPatch(ModelSerializer):
+class TolovPatch(Serializer):
+    tolangan_summa = serializers.ListField()
+    tolangan_sana = serializers.DateField()
+    tolandi = serializers.BooleanField()
+
+
+class UserReadSerializer(ModelSerializer):
     class Meta:
-        model = Tolov
-        fields =["tolangan_summa", "tolangan_sana", "tolandi"]
+        model = User
+        fields = ['username', 'password']
 
-
+    def to_representation(self, instance):
+        data = super(UserReadSerializer, self).to_representation(instance)
+        hozirgi_user = User.objects.get(username=data.get('username'))
+        data.update({'role': hozirgi_user.first_name})
+        return data
