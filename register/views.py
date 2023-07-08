@@ -115,32 +115,51 @@ class TolovModelViewSet(ModelViewSet):
         tolov = request.data
         serializer = TolovSerializer(data=tolov)
         if serializer.is_valid():
-            serializer.save(xulosa_holati="Topshirilyapti")
+            with transaction.atomic():
+                t = 0
+                tolangan_amount = serializer.validated_data.get("tolangan_summa")
+                for i in tolangan_amount:
+                    t += int(i.get('summa'))
+                if t == serializer.validated_data.get("summa"):
+                    serializer.save(xulosa_holati="Topshirilyapti", tolandi=True, haqdor=False)
+                elif t > serializer.validated_data.get("summa"):
+                    serializer.save(xulosa_holati="Topshirilyapti", tolandi=False, haqdor=True)
+                elif t < serializer.validated_data.get("summa"):
+                    serializer.save(xulosa_holati="Topshirilyapti", tolandi=False, haqdor=False)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
         tolov = request.data
         t = self.get_object()
         serializer = TolovPatch(t, data=tolov)
         if serializer.is_valid():
-            if t.joylashtirish_id is not None and t.joylashtirish_id.ketish_sanasi is not None and t.summa == serializer.validated_data.get('tolangan_summa'):
+            t_summa = 0
+            tolangan_amount = serializer.validated_data.get("tolangan_summa")
+            for i in tolangan_amount:
+                t_summa += int(i.get('summa'))
+            if t.joylashtirish_id is not None and t.joylashtirish_id.ketish_sanasi is not None and t.summa == t_summa:
                 t.tolangan_summa = serializer.validated_data.get('tolangan_summa')
                 t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
                 t.tolandi = True
                 t.save()
-            elif t.joylashtirish_id is not None and t.joylashtirish_id.ketish_sanasi is not None and t.summa < serializer.validated_data.get('tolangan_summa'):
+            elif t.joylashtirish_id is not None and t.joylashtirish_id.ketish_sanasi is not None and t.summa < t_summa:
                 t.tolangan_summa = serializer.validated_data.get('tolangan_summa')
                 t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
                 t.tolandi = False
                 t.haqdor = True
+                t.save()
+            elif t.yollanma_id is not None and t.summa == t_summa:
+                t.tolangan_summa = serializer.validated_data.get('tolangan_summa')
+                t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
+                t.tolandi = True
+                t.haqdor = False
                 t.save()
             else:
                 t.tolangan_summa = serializer.validated_data.get('tolangan_summa')
                 t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
                 t.tolandi = False
                 t.save()
-            print(tolov, serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
 
@@ -303,9 +322,18 @@ class TolovQaytarishViewSet(ModelViewSet):
                 serializer.save()
                 tolov = Tolov.objects.get(id=d.get('tolov_id'))
                 tolov.tolangan_summa.append({"sana": str(datetime.date.today()), "summa": -(serializer.validated_data.get('summa'))})
-                if tolov.tolangan_summa == tolov.summa:
+                t = 0
+                for i in tolov.tolangan_summa:
+                    t += int(i.get("summa"))
+                if t == tolov.summa:
                     tolov.haqdor = False
                     tolov.tolandi = True
+                elif t > tolov.summa:
+                    tolov.haqdor = True
+                    tolov.tolandi = False
+                else:
+                    tolov.haqdor = False
+                    tolov.tolandi = False
                 tolov.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
