@@ -1,5 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
+from django.shortcuts import render
+from django.views import View
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -142,11 +144,13 @@ class TolovModelViewSet(ModelViewSet):
                 t.tolangan_summa = serializer.validated_data.get('tolangan_summa')
                 t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
                 t.tolandi = True
+                t.xulosa_holati = serializer.validated_data.get('xulosa_holati')
                 t.save()
             elif t.joylashtirish_id is not None and t.joylashtirish_id.ketish_sanasi is not None and t.summa < t_summa:
                 t.tolangan_summa = serializer.validated_data.get('tolangan_summa')
                 t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
                 t.tolandi = False
+                t.xulosa_holati = serializer.validated_data.get('xulosa_holati')
                 t.haqdor = True
                 t.save()
             elif t.yollanma_id is not None and t.summa == t_summa:
@@ -154,11 +158,13 @@ class TolovModelViewSet(ModelViewSet):
                 t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
                 t.tolandi = True
                 t.haqdor = False
+                t.xulosa_holati = serializer.validated_data.get('xulosa_holati')
                 t.save()
             else:
                 t.tolangan_summa = serializer.validated_data.get('tolangan_summa')
                 t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
                 t.tolandi = False
+                t.xulosa_holati = serializer.validated_data.get('xulosa_holati')
                 t.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
@@ -337,21 +343,3 @@ class TolovQaytarishViewSet(ModelViewSet):
                 tolov.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class LoginView(APIView):
-    def post(self, request):
-        data = request.data
-        user = authenticate(username=data.get("username"),
-                     password=data.get("password"))
-        if user is None:
-            return Response({"success":"False", "message": "User topilmadi"}, status=status.HTTP_400_BAD_REQUEST)
-        login(request, user)
-        serializer = UserReadSerializer(user)
-        return Response(serializer.data)
-
-class LogoutView(APIView):
-    def get(self, request):
-        logout(request)
-        return Response({"success":"True", "message": "User logout qilindi"})
-
-

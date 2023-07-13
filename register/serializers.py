@@ -99,9 +99,9 @@ class TolovQaytarishSerializer(ModelSerializer):
 
 class TolovPatch(Serializer):
     tolangan_summa = serializers.ListField()
-    tolangan_sana = serializers.DateField()
+    tolangan_sana = serializers.DateField(allow_null=True)
     tolandi = serializers.BooleanField()
-
+    xulosa_holati = serializers.CharField(allow_blank=True, allow_null=True)
 
 class UserReadSerializer(ModelSerializer):
     class Meta:
