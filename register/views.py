@@ -48,6 +48,19 @@ class BemorModelViewSet(ModelViewSet):
 
     @action(detail=True)
     def tolovlar(self, request, pk):
+        tolovlar = Tolov.objects.filter(tolandi=False, joylashtirish_id__isnull=False)
+        for tolov in tolovlar:
+            joy = Joylashtirish.objects.get(id=tolov.joylashtirish_id.id)
+            boshi = datetime.datetime.strptime(str(joy.kelish_sanasi), "%Y-%m-%d")
+            oxiri = datetime.datetime.strptime(str(datetime.date.today()), "%Y-%m-%d")
+            joy.yotgan_kun_soni = abs((boshi - oxiri).days) + 1
+            if joy.qarovchi:
+                s = int(joy.yotgan_kun_soni) * int(joy.xona_id.joy_narxi) * 2
+            else:
+                s = int(joy.yotgan_kun_soni) * int(joy.xona_id.joy_narxi)
+            joy.save()
+            tolov.summa = s
+            tolov.save()
         bemor = Bemor.objects.get(id=pk)
         payments = Tolov.objects.filter(bemor_id=bemor)
         query = self.request.query_params.get('tolandi')
@@ -59,6 +72,7 @@ class BemorModelViewSet(ModelViewSet):
                 payments = Tolov.objects.filter(bemor_id__id=pk, tolandi=False)
         if date:
             payments = payments.filter(sana=date)
+
         serializer = TolovReadSerializer(payments, many=True)
         return Response(serializer.data)
 
@@ -266,10 +280,12 @@ class JoylashtirishModelViewSet(ModelViewSet):
                 tolov = Tolov.objects.get(joylashtirish_id=joylashtirish)
                 xona = Xona.objects.get(id=joylashtirish.xona_id.id)
                 if joylashtirish.qarovchi:
-                    xona.bosh_joy_soni += 2
+                    if joylashtirish.ketish_sanasi:
+                        xona.bosh_joy_soni += 2
                     s = int(joylashtirish.yotgan_kun_soni) * int(joylashtirish.xona_id.joy_narxi) * 2
                 else:
-                    xona.bosh_joy_soni += 1
+                    if joylashtirish.ketish_sanasi:
+                        xona.bosh_joy_soni += 1
                     s = int(joylashtirish.yotgan_kun_soni) * int(joylashtirish.xona_id.joy_narxi)
                 tolov.summa = s
                 tolanganlar = 0

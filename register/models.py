@@ -38,9 +38,9 @@ class Yollanma(models.Model):
     qayerga = models.CharField(max_length=50)  # Labaratoriya, UZI, EKG, Doktor
     xulosa_shablon_id = models.ForeignKey(XulosaShablon, on_delete=models.SET_NULL, null=True, blank=True)
     def __str__(self):
-        if self.xulosa_shablon_id:
-            return f"{self.nom}. Xulosa shabloni: \n" \
-                   f"Name: {self.xulosa_shablon_id.xulosa_name}. Text: {self.xulosa_shablon_id.header_text}"
+        # if self.xulosa_shablon_id:
+        #     return f"{self.nom}. Xulosa shabloni: \n" \
+        #            f"Name: {self.xulosa_shablon_id.xulosa_name}. Text: {self.xulosa_shablon_id.header_text}"
         return f"{self.nom}."
 
     def save(self, *args, **kwargs):
@@ -102,12 +102,11 @@ class TolovQaytarish(models.Model):
     def __str__(self):
         return self.izoh
 
-# class QoshimchaTolov(models.Model):
-#     summa = models.IntegerField()
-#     sana = models.DateField(auto_now_add=True)
-#     izoh = models.CharField(max_length=300)
-#     tolov_id = models.ForeignKey(Tolov, on_delete=models.SET_NULL, null=True)
-#     def __str__(self):
-#         return self.izoh
+class Chek(models.Model):
+    bemor_id = models.ForeignKey(Bemor, on_delete=models.SET_NULL, null=True)
+    sana = models.DateField()
+    tolov_maqsadlar = models.JSONField(default=list())
+    def __str__(self):
+        return f"{self.bemor_id.ism} ({self.sana})"
 
 
