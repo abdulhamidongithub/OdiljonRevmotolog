@@ -359,3 +359,9 @@ class TolovQaytarishViewSet(ModelViewSet):
                 tolov.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ChekModelViewSet(ModelViewSet):
+    queryset = Chek.objects.all()
+    serializer_class = ChekSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]

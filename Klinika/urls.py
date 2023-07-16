@@ -23,6 +23,7 @@ router.register('joylashtirishlar', JoylashtirishModelViewSet)
 router.register('xulosa_shablonlar', XulosaShablonModelViewSet)
 router.register('yollanmalar', YollanmaModelViewSet)
 router.register('tolov_qaytarishlar', TolovQaytarishViewSet)
+router.register('cheklar', ChekModelViewSet)
 
 
 schema_view = get_schema_view(
