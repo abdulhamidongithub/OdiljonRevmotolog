@@ -113,3 +113,8 @@ class UserReadSerializer(ModelSerializer):
         hozirgi_user = User.objects.get(username=data.get('username'))
         data.update({'role': hozirgi_user.first_name})
         return data
+
+class ChekSerializer(ModelSerializer):
+    class Meta:
+        model = Chek
+        fields = '__all__'
