@@ -44,10 +44,12 @@ class Yollanma(models.Model):
         return f"{self.nom}."
 
     def save(self, *args, **kwargs):
-        new_one = XulosaShablon.objects.create(
-            xulosa_name = self.nom
-        )
-        self.xulosa_shablon_id = new_one
+        x = XulosaShablon.objects.filter(xulosa_name = self.nom)
+        if len(x) == 0:
+            new_one = XulosaShablon.objects.create(
+                xulosa_name = self.nom
+            )
+            self.xulosa_shablon_id = new_one
         super(Yollanma, self).save(*args, **kwargs)
 
 class Joylashtirish(models.Model):
