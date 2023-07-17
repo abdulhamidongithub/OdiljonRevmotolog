@@ -17,11 +17,7 @@ class TolovAdmin(admin.ModelAdmin):
     list_filter = ["yollanma_id", "tolandi", "tolangan_sana"]
     date_hierarchy = "tolangan_sana"
 
-# admin.site.register(Xulosa)
-admin.site.register(Xona)
-admin.site.register(Joylashtirish)
 admin.site.register(Yollanma)
-# admin.site.register(XulosaShablon)
 
 admin.site.unregister(User)
 admin.site.unregister(Group)
