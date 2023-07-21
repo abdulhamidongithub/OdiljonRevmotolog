@@ -83,7 +83,10 @@ class Tolov(models.Model):
     # kun_soni = models.PositiveSmallIntegerField(blank=True, null=True)
 
     def __str__(self):
-        return f"{self.bemor_id.ism}, {self.summa}"
+        umumiy = 0
+        for i in self.summa:
+            umumiy += i.get('summa')
+        return f"{self.bemor_id.ism}, {umumiy}"
 
 
 class Xulosa(models.Model):
