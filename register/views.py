@@ -30,13 +30,6 @@ class BemorModelViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    # def list(self, request, *args, **kwargs):
-    #     if request.user.is_authenticated:
-    #         bemorlar = Bemor.objects.all()
-    #         serializer = BemorSerializer(bemorlar, many=True)
-    #         return Response(serializer.data)
-    #     return Response({"message": "Login required"})
-
     def get_queryset(self):
         queryset = Bemor.objects.all()
         qidiruv = self.request.query_params.get('qidiruv')
@@ -48,7 +41,7 @@ class BemorModelViewSet(ModelViewSet):
 
     @action(detail=True)
     def tolovlar(self, request, pk):
-        tolovlar = Tolov.objects.filter(tolandi=False, joylashtirish_id__isnull=False)
+        tolovlar = Tolov.objects.filter(joylashtirish_id__isnull=False, joylashtirish_id__ketish_sanasi__isnull=True)
         for tolov in tolovlar:
             joy = Joylashtirish.objects.get(id=tolov.joylashtirish_id.id)
             boshi = datetime.datetime.strptime(str(joy.kelish_sanasi), "%Y-%m-%d")
@@ -107,7 +100,7 @@ class TolovModelViewSet(ModelViewSet):
         if date:
             queryset = queryset.filter(sana=date)
         serializer = TolovReadSerializer(queryset, many=True)
-        tolovlar = Tolov.objects.filter(tolandi=False, joylashtirish_id__isnull=False)
+        tolovlar = Tolov.objects.filter(joylashtirish_id__isnull=False, joylashtirish_id__ketish_sanasi__isnull=True)
         for tolov in tolovlar:
             joy = Joylashtirish.objects.get(id=tolov.joylashtirish_id.id)
             boshi = datetime.datetime.strptime(str(joy.kelish_sanasi), "%Y-%m-%d")
@@ -365,3 +358,10 @@ class ChekModelViewSet(ModelViewSet):
     serializer_class = ChekSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = self.queryset
+        bemor = self.request.query_params.get("bemor_id")
+        if bemor:
+            queryset = queryset.filter(bemor_id__id=int(bemor))
+        return queryset

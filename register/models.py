@@ -65,7 +65,6 @@ class Joylashtirish(models.Model):
 class Tolov(models.Model):
     bemor_id = models.ForeignKey(Bemor, on_delete=models.SET_NULL, null=True)
     summa = models.PositiveBigIntegerField()
-    # tolangan_summa = models.PositiveBigIntegerField(default=0)
     tolangan_summa = models.JSONField(null=True, blank=True, default=[])
     sana = models.DateField(auto_now_add=True)
     turi = models.CharField(choices=(('Naqd', 'Naqd'), ('Plastik', 'Plastik')), blank=True, max_length=50)
@@ -80,13 +79,13 @@ class Tolov(models.Model):
     tolangan_sana = models.DateField(null=True, blank=True)
     ozgartirilgan_sana = models.DateField(null=True, blank=True)
     haqdor = models.BooleanField(default=False)
-    # kun_soni = models.PositiveSmallIntegerField(blank=True, null=True)
 
     def __str__(self):
         umumiy = 0
-        for i in self.summa:
-            umumiy += i.get('summa')
-        return f"{self.bemor_id.ism}, {umumiy}"
+        for i in self.tolangan_summa:
+            if i.get('summa'):
+                umumiy += int(i.get('summa'))
+        return f"{self.bemor_id.ism}, {umumiy} so'm"
 
 
 class Xulosa(models.Model):
@@ -94,7 +93,6 @@ class Xulosa(models.Model):
     sana = models.DateField(auto_now_add=True)
     tolov_id = models.ForeignKey(Tolov, on_delete=models.CASCADE)
     chop_etildi = models.BooleanField(default=False)
-    # kim_tomonidan = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return f"{self.tolov_id.bemor_id.ism}, {self.xulosa_matni[:50]}"
