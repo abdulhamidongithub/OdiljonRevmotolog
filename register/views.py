@@ -360,7 +360,7 @@ class ChekModelViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        queryset = self.queryset
+        queryset = Chek.objects.all()
         bemor = self.request.query_params.get("bemor_id")
         if bemor:
             queryset = queryset.filter(bemor_id__id=int(bemor))
