@@ -357,7 +357,7 @@ class ChekModelViewSet(ModelViewSet):
     queryset = Chek.objects.all()
     serializer_class = ChekSerializer
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = Chek.objects.all()

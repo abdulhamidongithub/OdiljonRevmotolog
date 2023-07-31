@@ -38,19 +38,18 @@ class Yollanma(models.Model):
     qayerga = models.CharField(max_length=50)  # Labaratoriya, UZI, EKG, Doktor
     xulosa_shablon_id = models.ForeignKey(XulosaShablon, on_delete=models.SET_NULL, null=True, blank=True)
     def __str__(self):
-        # if self.xulosa_shablon_id:
-        #     return f"{self.nom}. Xulosa shabloni: \n" \
-        #            f"Name: {self.xulosa_shablon_id.xulosa_name}. Text: {self.xulosa_shablon_id.header_text}"
         return f"{self.nom}."
 
+
     def save(self, *args, **kwargs):
-        x = XulosaShablon.objects.filter(xulosa_name = self.nom)
-        if len(x) == 0:
+        if not self.xulosa_shablon_id:
             new_one = XulosaShablon.objects.create(
                 xulosa_name = self.nom
             )
             self.xulosa_shablon_id = new_one
         super(Yollanma, self).save(*args, **kwargs)
+        self.xulosa_shablon_id.xulosa_name = self.nom
+        self.xulosa_shablon_id.save()
 
 class Joylashtirish(models.Model):
     bemor_id = models.ForeignKey(Bemor, on_delete=models.CASCADE)
@@ -69,7 +68,7 @@ class Tolov(models.Model):
     sana = models.DateField(auto_now_add=True)
     turi = models.CharField(choices=(('Naqd', 'Naqd'), ('Plastik', 'Plastik')), blank=True, max_length=50)
     tolandi = models.BooleanField(default=False)  # to'landi, qarzdor
-    yollanma_id = models.ForeignKey(Yollanma, on_delete=models.CASCADE, null=True)  # 3
+    yollanma_id = models.ForeignKey(Yollanma, on_delete=models.CASCADE, null=True, blank=True)  # 3
     joylashtirish_id = models.ForeignKey(Joylashtirish, on_delete=models.CASCADE, null=True, blank=True) # 2
     xulosa_holati = models.CharField(max_length=30, blank=True, null=True, choices=(
         ('Topshirilyapti', 'Topshirilyapti'),
@@ -85,7 +84,9 @@ class Tolov(models.Model):
         for i in self.tolangan_summa:
             if i.get('summa'):
                 umumiy += int(i.get('summa'))
-        return f"{self.bemor_id.ism}, {umumiy} so'm"
+        if self.bemor_id:
+            return f"{self.bemor_id.ism}, {umumiy} so'm"
+        return f"{umumiy} so'm"
 
 
 class Xulosa(models.Model):
@@ -95,7 +96,9 @@ class Xulosa(models.Model):
     chop_etildi = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.tolov_id.bemor_id.ism}, {self.xulosa_matni[:50]}"
+        if self.tolov_id.bemor_id:
+            return f"{self.tolov_id.bemor_id.ism}, {self.xulosa_matni[:50]}"
+        return f"{self.xulosa_matni[:50]}"
 
 class TolovQaytarish(models.Model):
     summa = models.IntegerField()
@@ -110,6 +113,8 @@ class Chek(models.Model):
     sana = models.DateField()
     tolov_maqsadlar = models.JSONField(default=list())
     def __str__(self):
-        return f"{self.bemor_id.ism} ({self.sana})"
+        if self.bemor_id:
+            return f"{self.bemor_id.ism} ({self.sana})"
+        return f"{self.sana}"
 
 
