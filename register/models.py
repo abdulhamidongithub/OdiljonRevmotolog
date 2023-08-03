@@ -4,6 +4,7 @@ class Bemor(models.Model):
     ism = models.CharField(max_length=100)
     familiya = models.CharField(max_length=100)
     sharif = models.CharField(max_length=100)
+    tugilgan_sana = models.DateField(null=True, blank=True)
     tel = models.CharField(max_length=15)
     pasport_seriya = models.CharField(max_length=10, blank=True, null=True)
     manzil = models.CharField(max_length=150)
@@ -13,6 +14,9 @@ class Bemor(models.Model):
 
     def __str__(self):
         return f"{self.ism} {self.familiya}"
+
+    class Meta:
+        ordering = ['familiya', 'ism']
 
 class Xona(models.Model):
     qavat = models.PositiveSmallIntegerField()
