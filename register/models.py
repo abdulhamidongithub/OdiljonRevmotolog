@@ -3,10 +3,9 @@ from django.db import models
 class Bemor(models.Model):
     ism = models.CharField(max_length=100)
     familiya = models.CharField(max_length=100)
-    sharif = models.CharField(max_length=100)
+    sharif = models.CharField(max_length=100, null=True, blank=True)
     tugilgan_sana = models.DateField(null=True, blank=True)
     tel = models.CharField(max_length=15)
-    pasport_seriya = models.CharField(max_length=10, blank=True, null=True)
     manzil = models.CharField(max_length=150)
     balans = models.IntegerField(default=0)
     royhatdan_otgan_sana = models.DateField(auto_now_add=True, null=True, blank=True)

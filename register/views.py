@@ -1,8 +1,4 @@
-from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
-from django.shortcuts import render
-from django.views import View
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -27,16 +23,32 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class BemorModelViewSet(ModelViewSet):
     queryset = Bemor.objects.all()
     serializer_class = BemorSerializer
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]
+    # authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
         queryset = Bemor.objects.all()
         qidiruv = self.request.query_params.get('qidiruv')
+        t_date = self.request.query_params.get('tolov_date')
+        tolandi = self.request.query_params.get('tolov_tolandi')
+        y_id = self.request.query_params.get('yollanma_id')
+        j_id = self.request.query_params.get('joylashtirish_id')
         if qidiruv:
-            queryset = queryset.filter(ism__contains=qidiruv)|queryset.filter(
-                familiya__contains=qidiruv)|queryset.filter(sharif__contains=qidiruv)|queryset.filter(
-                tel__contains=qidiruv)|queryset.filter(pasport_seriya__contains=qidiruv)
+            queryset = queryset.filter(ism__icontains=qidiruv)|queryset.filter(
+                familiya__icontains=qidiruv)|queryset.filter(sharif__icontains=qidiruv)|queryset.filter(
+                tel__icontains=qidiruv)
+        if tolandi is not None:
+            tolovlar = Tolov.objects.filter(tolandi=False).values("bemor_id").distinct()
+            queryset = queryset.filter(id__in=tolovlar)
+        if t_date:
+            tolovlar = Tolov.objects.filter(sana=t_date).values("bemor_id").distinct()
+            queryset = queryset.filter(id__in=tolovlar)
+        if y_id:
+            tolovlar = Tolov.objects.filter(joylashtirish_id__isnull=True).values("bemor_id").distinct()
+            queryset = queryset.filter(id__in=tolovlar)
+        if j_id:
+            tolovlar = Tolov.objects.filter(yollanma_id__isnull=True).values("bemor_id").distinct()
+            queryset = queryset.filter(id__in=tolovlar)
         return queryset
 
     @action(detail=True)
