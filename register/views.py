@@ -36,10 +36,23 @@ class BemorModelViewSet(ModelViewSet):
         t_from_date = self.request.query_params.get('tolov_from_date')
         t_to_date = self.request.query_params.get('tolov_to_date')
         j_id = self.request.query_params.get('joylashtirish_id')
+        qayerga = self.request.query_params.get('qayerga')
+        sana = self.request.query_params.get('sana')
+        joylashgan = self.request.query_params.get('joylashgan')
+        tolov_sana = self.request.query_params.get('tolov_sana')
         if qidiruv:
             queryset = queryset.filter(ism__icontains=qidiruv)|queryset.filter(
                 familiya__icontains=qidiruv)|queryset.filter(sharif__icontains=qidiruv)|queryset.filter(
                 tel__icontains=qidiruv)
+        if sana:
+            tolovlar = Tolov.objects.filter(sana=sana).values("bemor_id").distinct()
+            queryset = queryset.filter(id__in=tolovlar)
+        if joylashgan:
+            tolovlar = Tolov.objects.filter(joylashgan=True).values("bemor_id").distinct()
+            queryset = queryset.filter(id__in=tolovlar)
+        if tolov_sana:
+            tolovlar = Tolov.objects.filter(tolangan_sana=tolov_sana).values("bemor_id").distinct()
+            queryset = queryset.filter(id__in=tolovlar)
         if tolandi is not None:
             tolovlar = Tolov.objects.filter(tolandi=False).values("bemor_id").distinct()
             queryset = queryset.filter(id__in=tolovlar)
@@ -50,6 +63,10 @@ class BemorModelViewSet(ModelViewSet):
             tolovlar = Tolov.objects.filter(sana=t_date, yollanma_id__isnull=True) | Tolov.objects.filter(
                 tolangan_sana=t_date, yollanma_id__isnull=True).values("bemor_id").distinct()
             queryset = queryset.filter(id__in=tolovlar)
+        elif t_date and qayerga:
+            tolovlar = Tolov.objects.filter(sana=t_date, yollanma_id__qayerga=qayerga) | Tolov.objects.filter(
+                tolangan_sana=t_date, yollanma_id__qayerga=qayerga).values("bemor_id").distinct()
+            queryset = queryset.filter(id__in=tolovlar)
         if t_from_date and t_to_date and y_id:
             tolovlar = Tolov.objects.filter(sana__range=(t_from_date, t_to_date), joylashtirish_id__isnull=True) | Tolov.objects.filter(
                 tolangan__range=(t_from_date, t_to_date), joylashtirish_id__isnull=True).values("bemor_id").distinct()
@@ -57,6 +74,11 @@ class BemorModelViewSet(ModelViewSet):
         elif t_from_date and t_to_date and j_id:
             tolovlar = Tolov.objects.filter(sana__range=(t_from_date, t_to_date), yollanma_id__isnull=True) | Tolov.objects.filter(
                 tolangan__range=(t_from_date, t_to_date), yollanma_id__isnull=True).values("bemor_id").distinct()
+            queryset = queryset.filter(id__in=tolovlar)
+        elif t_from_date and t_to_date and qayerga:
+            tolovlar = Tolov.objects.filter(sana__range=(t_from_date, t_to_date),
+                                            yollanma_id__qayerga=qayerga) | Tolov.objects.filter(
+                tolangan__range=(t_from_date, t_to_date), yollanma_id__qayerga=qayerga).values("bemor_id").distinct()
             queryset = queryset.filter(id__in=tolovlar)
         return queryset
 
@@ -200,8 +222,8 @@ class TolovModelViewSet(ModelViewSet):
 class XulosaModelViewSet(ModelViewSet):
     queryset = Xulosa.objects.all()
     serializer_class = XulosaSerializer
-    # authentication_classes = [JWTAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
         bemori = self.request.query_params.get("bemor_id")
