@@ -200,11 +200,15 @@ class TolovModelViewSet(ModelViewSet):
 class XulosaModelViewSet(ModelViewSet):
     queryset = Xulosa.objects.all()
     serializer_class = XulosaSerializer
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
-        queryset = Xulosa.objects.all()
+        bemori = self.request.query_params.get("bemor_id")
+        queryset = self.queryset
+        if bemori:
+            tolovlar = Tolov.objects.filter(bemor_id__in=Bemor.objects.filter(id=int(bemori)))
+            queryset = queryset.filter(tolov_id__in=tolovlar)
         serializer = XulosaReadSerializer(queryset, many=True)
         return Response(serializer.data)
 
