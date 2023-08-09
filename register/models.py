@@ -81,6 +81,8 @@ class Tolov(models.Model):
     tolangan_sana = models.DateField(null=True, blank=True)
     ozgartirilgan_sana = models.DateField(null=True, blank=True)
     haqdor = models.BooleanField(default=False)
+    tolov_qaytarildi = models.BooleanField(default=False)
+    izoh = models.CharField(max_length=300, null=True, blank=True)
 
     def __str__(self):
         umumiy = 0
