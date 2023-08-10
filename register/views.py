@@ -23,8 +23,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class BemorModelViewSet(ModelViewSet):
     queryset = Bemor.objects.all()
     serializer_class = BemorSerializer
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]
+    # authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
         queryset = Bemor.objects.all()
@@ -44,41 +44,37 @@ class BemorModelViewSet(ModelViewSet):
             queryset = queryset.filter(ism__icontains=qidiruv)|queryset.filter(
                 familiya__icontains=qidiruv)|queryset.filter(sharif__icontains=qidiruv)|queryset.filter(
                 tel__icontains=qidiruv)
-        if sana:
-            tolovlar = Tolov.objects.filter(sana=sana).values("bemor_id").distinct()
-            queryset = queryset.filter(id__in=tolovlar)
-        if joylashgan:
-            tolovlar = Tolov.objects.filter(joylashgan=True).values("bemor_id").distinct()
-            queryset = queryset.filter(id__in=tolovlar)
-        if tolov_sana:
-            tolovlar = Tolov.objects.filter(tolangan_sana=tolov_sana).values("bemor_id").distinct()
-            queryset = queryset.filter(id__in=tolovlar)
+        if sana or joylashgan or tolov_sana:
+            tolovlar = Tolov.objects.filter(sana=sana).values("bemor_id").distinct()|Tolov.objects.filter(tolangan_sana=tolov_sana).values("bemor_id").distinct()
+            queryset = queryset.filter(id__in=tolovlar)| queryset.filter(joylashgan=True)
         if tolandi is not None:
             tolovlar = Tolov.objects.filter(tolandi=False).values("bemor_id").distinct()
             queryset = queryset.filter(id__in=tolovlar)
-        if t_date and y_id:
-            tolovlar = Tolov.objects.filter(sana=t_date, joylashtirish_id__isnull=True)|Tolov.objects.filter(tolangan_sana=t_date, joylashtirish_id__isnull=True).values("bemor_id").distinct()
+        elif t_date and y_id:
+            tolovlar = Tolov.objects.filter(sana=t_date, joylashtirish_id__isnull=True
+                                ).values("bemor_id").distinct()|Tolov.objects.filter(
+                tolangan_sana=t_date, joylashtirish_id__isnull=True).values("bemor_id").distinct()
             queryset = queryset.filter(id__in=tolovlar)
         elif t_date and j_id:
-            tolovlar = Tolov.objects.filter(sana=t_date, yollanma_id__isnull=True) | Tolov.objects.filter(
+            tolovlar = Tolov.objects.filter(sana=t_date, yollanma_id__isnull=True).values("bemor_id").distinct() | Tolov.objects.filter(
                 tolangan_sana=t_date, yollanma_id__isnull=True).values("bemor_id").distinct()
             queryset = queryset.filter(id__in=tolovlar)
         elif t_date and qayerga:
-            tolovlar = Tolov.objects.filter(sana=t_date, yollanma_id__qayerga=qayerga) | Tolov.objects.filter(
+            tolovlar = Tolov.objects.filter(sana=t_date, yollanma_id__qayerga=qayerga).values("bemor_id").distinct() | Tolov.objects.filter(
                 tolangan_sana=t_date, yollanma_id__qayerga=qayerga).values("bemor_id").distinct()
             queryset = queryset.filter(id__in=tolovlar)
-        if t_from_date and t_to_date and y_id:
-            tolovlar = Tolov.objects.filter(sana__range=(t_from_date, t_to_date), joylashtirish_id__isnull=True) | Tolov.objects.filter(
-                tolangan__range=(t_from_date, t_to_date), joylashtirish_id__isnull=True).values("bemor_id").distinct()
+        elif t_from_date and t_to_date and y_id:
+            tolovlar = Tolov.objects.filter(sana__range=(t_from_date, t_to_date), joylashtirish_id__isnull=True).values("bemor_id").distinct() | Tolov.objects.filter(
+                tolangan_sana__range=(t_from_date, t_to_date), joylashtirish_id__isnull=True).values("bemor_id").distinct()
             queryset = queryset.filter(id__in=tolovlar)
         elif t_from_date and t_to_date and j_id:
-            tolovlar = Tolov.objects.filter(sana__range=(t_from_date, t_to_date), yollanma_id__isnull=True) | Tolov.objects.filter(
-                tolangan__range=(t_from_date, t_to_date), yollanma_id__isnull=True).values("bemor_id").distinct()
+            tolovlar = Tolov.objects.filter(sana__range=(t_from_date, t_to_date), yollanma_id__isnull=True).values("bemor_id").distinct() | Tolov.objects.filter(
+                tolangan_sana__range=(t_from_date, t_to_date), yollanma_id__isnull=True).values("bemor_id").distinct()
             queryset = queryset.filter(id__in=tolovlar)
         elif t_from_date and t_to_date and qayerga:
             tolovlar = Tolov.objects.filter(sana__range=(t_from_date, t_to_date),
-                                            yollanma_id__qayerga=qayerga) | Tolov.objects.filter(
-                tolangan__range=(t_from_date, t_to_date), yollanma_id__qayerga=qayerga).values("bemor_id").distinct()
+                                            yollanma_id__qayerga=qayerga).values("bemor_id").distinct() | Tolov.objects.filter(
+                tolangan_sana__range=(t_from_date, t_to_date), yollanma_id__qayerga=qayerga).values("bemor_id").distinct()
             queryset = queryset.filter(id__in=tolovlar)
         return queryset
 
