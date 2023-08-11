@@ -45,8 +45,8 @@ class BemorModelViewSet(ModelViewSet):
                 familiya__icontains=qidiruv)|queryset.filter(sharif__icontains=qidiruv)|queryset.filter(
                 tel__icontains=qidiruv)
         if sana or joylashgan or tolov_sana:
-            tolovlar = Tolov.objects.filter(sana=sana).values("bemor_id").distinct()|Tolov.objects.filter(tolangan_sana=tolov_sana).values("bemor_id").distinct()
-            queryset = queryset.filter(id__in=tolovlar)| queryset.filter(joylashgan=True)
+            tolovlar = Tolov.objects.filter(tolangan_sana=tolov_sana).values("bemor_id").distinct()
+            queryset = queryset.filter(id__in=tolovlar)| queryset.filter(joylashgan=True) | queryset.filter(royhatdan_otgan_sana=sana)
         if tolandi is not None:
             tolovlar = Tolov.objects.filter(tolandi=False).values("bemor_id").distinct()
             queryset = queryset.filter(id__in=tolovlar)
