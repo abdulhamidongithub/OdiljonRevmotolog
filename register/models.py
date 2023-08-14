@@ -12,7 +12,7 @@ class Bemor(models.Model):
     joylashgan = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.ism} {self.familiya}"
+        return f"{self.id}. {self.ism} {self.familiya}"
 
     class Meta:
         ordering = ['familiya', 'ism']
@@ -90,8 +90,8 @@ class Tolov(models.Model):
             if i.get('summa'):
                 umumiy += int(i.get('summa'))
         if self.bemor_id:
-            return f"{self.bemor_id.ism}, {umumiy} so'm"
-        return f"{umumiy} so'm"
+            return f"{self.id}. {self.bemor_id.ism}, {umumiy} so'm"
+        return f"{self.id}. {umumiy} so'm"
 
 
 class Xulosa(models.Model):

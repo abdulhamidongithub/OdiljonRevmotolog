@@ -23,8 +23,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class BemorModelViewSet(ModelViewSet):
     queryset = Bemor.objects.all()
     serializer_class = BemorSerializer
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]
+    # authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
         queryset = Bemor.objects.all()
@@ -44,11 +44,21 @@ class BemorModelViewSet(ModelViewSet):
             queryset = queryset.filter(ism__icontains=qidiruv)|queryset.filter(
                 familiya__icontains=qidiruv)|queryset.filter(sharif__icontains=qidiruv)|queryset.filter(
                 tel__icontains=qidiruv)
-        if sana or joylashgan or tolov_sana:
+        if sana and joylashgan and tolov_sana:
             tolovlar = Tolov.objects.filter(tolangan_sana=tolov_sana).values("bemor_id").distinct()
             queryset = queryset.filter(id__in=tolovlar)| queryset.filter(joylashgan=True) | queryset.filter(royhatdan_otgan_sana=sana)
         if tolandi is not None:
             tolovlar = Tolov.objects.filter(tolandi=False).values("bemor_id").distinct()
+            queryset = queryset.filter(id__in=tolovlar)
+        if j_id and tolandi and sana:
+            tolovlar = Tolov.objects.filter(tolandi=False, joylashtirish_id__isnull=False).values("bemor_id").distinct() | Tolov.objects.filter(
+                sana=sana, joylashtirish_id__isnull=False).values("bemor_id").distinct() | Tolov.objects.filter(
+                tolangan_sana=sana, joylashtirish_id__isnull=False).values("bemor_id").distinct()
+            queryset = queryset.filter(id__in=tolovlar)
+        elif y_id and tolandi and sana:
+            tolovlar = Tolov.objects.filter(tolandi=False, yollanma_id__isnull=False).values("bemor_id").distinct() | Tolov.objects.filter(
+                sana=sana, yollanma_id__isnull=False).values("bemor_id").distinct() | Tolov.objects.filter(
+                tolangan_sana=sana, yollanma_id__isnull=False).values("bemor_id").distinct()
             queryset = queryset.filter(id__in=tolovlar)
         elif t_date and y_id:
             tolovlar = Tolov.objects.filter(sana=t_date, joylashtirish_id__isnull=True
@@ -104,7 +114,6 @@ class BemorModelViewSet(ModelViewSet):
                 payments = Tolov.objects.filter(bemor_id__id=pk, tolandi=False)
         if date:
             payments = payments.filter(sana=date)
-
         serializer = TolovReadSerializer(payments, many=True)
         return Response(serializer.data)
 
