@@ -443,6 +443,7 @@ class TolovlarAPIView(APIView):
         by_date = self.request.query_params.get('by_date')
         search_word = self.request.query_params.get("qayerga")
         joylashtirish = self.request.query_params.get('joylashtirish_id')
+        yollanma = self.request.query_params.get('yollanma_id')
         qaytarildi = self.request.query_params.get('tolov_qaytarildi')
         paginator = PageNumberPagination()
         if from_date and to_date and search_word:
@@ -457,12 +458,36 @@ class TolovlarAPIView(APIView):
             queryset = queryset.filter(sana__range=(from_date, to_date), joylashtirish_id__isnull=False,
                             tolangan_sana__isnull=True) | queryset.filter(
                 tolangan_sana__range=(from_date, to_date), joylashtirish_id__isnull=False)
+            all_objects = Tolov.objects.filter(joylashtirish_id__isnull=False, tolandi=False)
+            tolovs = Tolov.objects.filter(id=None)
+            for obj in all_objects:
+                for item in obj.tolangan_summa:
+                    if item.get('sana') == by_date:
+                        tolovs = tolovs | Tolov.objects.filter(id=obj.id)
+                        break
+            queryset = queryset | tolovs
         elif joylashtirish and by_date:
             queryset = queryset.filter(sana=by_date, joylashtirish_id__isnull=False,
                                        tolangan_sana__isnull=True) | queryset.filter(
                 tolangan_sana=by_date, joylashtirish_id__isnull=False)
+            all_objects = Tolov.objects.filter(joylashtirish_id__isnull=False, tolandi=False)
+            tolovs = Tolov.objects.filter(id=None)
+            for obj in all_objects:
+                for item in obj.tolangan_summa:
+                    if item.get('sana') == by_date:
+                        tolovs = tolovs | Tolov.objects.filter(id=obj.id)
+                        break
+            queryset = queryset | tolovs
+        elif from_date and to_date and yollanma:
+            queryset = queryset.filter(sana__range=(from_date, to_date), yollanma_id__isnull=False,
+                            tolangan_sana__isnull=True) | queryset.filter(
+                tolangan_sana__range=(from_date, to_date), yollanma_id__isnull=False)
+        elif yollanma and by_date:
+            queryset = queryset.filter(sana=by_date, yollanma_id__isnull=False,
+                                       tolangan_sana__isnull=True) | queryset.filter(
+                tolangan_sana=by_date, yollanma_id__isnull=False)
         if qaytarildi == 'true':
-            queryset = queryset.filter(tolov_qaytarildi=True)
+            queryset = Tolov.objects.filter(tolov_qaytarildi=True)
         paginated_queryset = paginator.paginate_queryset(queryset, request)
         serializer = TolovAdminSerializer(paginated_queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
