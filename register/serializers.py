@@ -118,3 +118,21 @@ class ChekSerializer(ModelSerializer):
     class Meta:
         model = Chek
         fields = '__all__'
+
+class YollanmaReadSerializer(ModelSerializer):
+    class Meta:
+        model = Yollanma
+        fields = '__all__'
+
+class TolovAdminSerializer(ModelSerializer):
+    joylashtirish_id = JoylashtirishSerializer()
+    yollanma_id = YollanmaReadSerializer()
+    class Meta:
+        model = Tolov
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        data = super(TolovAdminSerializer, self).to_representation(instance)
+        data.update({'ism': instance.bemor_id.ism, 'familiya': instance.bemor_id.familiya,
+                     "tel": instance.bemor_id.tel})
+        return data

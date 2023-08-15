@@ -90,8 +90,8 @@ class Tolov(models.Model):
             if i.get('summa'):
                 umumiy += int(i.get('summa'))
         if self.bemor_id:
-            return f"{self.id}. {self.bemor_id.ism}, {umumiy} so'm"
-        return f"{self.id}. {umumiy} so'm"
+            return f"{self.id}. {self.bemor_id.ism}, {umumiy} so'm. To'langan sana: {self.tolangan_sana}"
+        return f"{self.id}. {umumiy} so'm. To'langan sana: {self.tolangan_sana}."
 
 
 class Xulosa(models.Model):
