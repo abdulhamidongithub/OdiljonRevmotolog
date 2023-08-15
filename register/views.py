@@ -20,8 +20,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class BemorModelViewSet(ModelViewSet):
     queryset = Bemor.objects.all()
     serializer_class = BemorSerializer
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
         queryset = Bemor.objects.all()
@@ -312,6 +312,7 @@ class JoylashtirishModelViewSet(ModelViewSet):
                     s = int(joy.yotgan_kun_soni) * int(joy.xona_id.joy_narxi) * 2
                 else:
                     s = int(joy.yotgan_kun_soni) * int(joy.xona_id.joy_narxi)
+                joy.save()
                 Tolov.objects.create(
                     bemor_id = patient,
                     joylashtirish_id = joy,
@@ -434,6 +435,30 @@ class ChekModelViewSet(ModelViewSet):
             queryset = queryset.filter(bemor_id__id=int(bemor))
         return queryset
 
+    def create(self, request, *args, **kwargs):
+        check_to_be_created = request.data
+        serializer = ChekSerializer(data=check_to_be_created)
+        if serializer.is_valid():
+            with transaction.atomic():
+                serializer.save()
+                tolovlar = check_to_be_created.get('tolov_maqsadlar')
+                for i in tolovlar:
+                    tolov = Tolov.objects.get(id=i.get('tolov_id'))
+                    tolov.tolangan_summa.append({"summa": int(i.get('summa')), "sana": check_to_be_created.get('sana')})
+                    tolov.tolangan_sana = check_to_be_created.get('sana')
+                    if tolov.yollanma_id:
+                        tolov.tolandi = True
+                    else:
+                        t = 0
+                        for i in tolov.tolangan_summa:
+                            if i.get('summa'):
+                                t += i.get("summa")
+                        if t == tolov.summa:
+                            tolov.tolandi = True
+                    tolov.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class TolovlarAPIView(APIView):
     serializer_class = TolovAdminSerializer()
     def get(self, request):
@@ -445,6 +470,8 @@ class TolovlarAPIView(APIView):
         joylashtirish = self.request.query_params.get('joylashtirish_id')
         yollanma = self.request.query_params.get('yollanma_id')
         qaytarildi = self.request.query_params.get('tolov_qaytarildi')
+        pagination_class = PageNumberPagination
+        pagination_class.page_size = 30
         paginator = PageNumberPagination()
         if from_date and to_date and search_word:
             queryset = queryset.filter(sana__range=(from_date, to_date), yollanma_id__qayerga=search_word,
@@ -489,8 +516,17 @@ class TolovlarAPIView(APIView):
         if qaytarildi == 'true':
             queryset = Tolov.objects.filter(tolov_qaytarildi=True)
         paginated_queryset = paginator.paginate_queryset(queryset, request)
+        umumiy_tolanganlar = 0
+        qarzdorlik = 0
+        for tolov in queryset:
+            t = 0
+            for i in tolov.tolangan_summa:
+                if i.get('summa') is not None:
+                    t += i.get('summa')
+            qarzdorlik = qarzdorlik + tolov.summa - t
+            umumiy_tolanganlar += t
         serializer = TolovAdminSerializer(paginated_queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({'natija_tolovlar': serializer.data, 'umumiy_summa': umumiy_tolanganlar, "qarzdorlik": qarzdorlik}, status=status.HTTP_200_OK)
 
 class TolovDeleteAPIView(APIView):
     serializer_class = TolovAdminSerializer()
