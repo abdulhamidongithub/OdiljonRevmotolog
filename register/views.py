@@ -6,12 +6,9 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 import datetime
-
 from rest_framework_simplejwt.views import TokenObtainPairView
-
-from .serializers import CustomTokenObtainPairSerializer
-
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.pagination import PageNumberPagination
 
 from .serializers import *
 from .models import *
@@ -446,6 +443,8 @@ class TolovlarAPIView(APIView):
         by_date = self.request.query_params.get('by_date')
         search_word = self.request.query_params.get("qayerga")
         joylashtirish = self.request.query_params.get('joylashtirish_id')
+        qaytarildi = self.request.query_params.get('tolov_qaytarildi')
+        paginator = PageNumberPagination()
         if from_date and to_date and search_word:
             queryset = queryset.filter(sana__range=(from_date, to_date), yollanma_id__qayerga=search_word,
                             tolangan_sana__isnull=True) | queryset.filter(
@@ -462,7 +461,10 @@ class TolovlarAPIView(APIView):
             queryset = queryset.filter(sana=by_date, joylashtirish_id__isnull=False,
                                        tolangan_sana__isnull=True) | queryset.filter(
                 tolangan_sana=by_date, joylashtirish_id__isnull=False)
-        serializer = TolovAdminSerializer(queryset, many=True)
+        if qaytarildi == 'true':
+            queryset = queryset.filter(tolov_qaytarildi=True)
+        paginated_queryset = paginator.paginate_queryset(queryset, request)
+        serializer = TolovAdminSerializer(paginated_queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class TolovDeleteAPIView(APIView):
