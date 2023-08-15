@@ -465,4 +465,9 @@ class TolovlarAPIView(APIView):
         serializer = TolovAdminSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-# class TolovDeleteAPIView()
+class TolovDeleteAPIView(APIView):
+    serializer_class = TolovAdminSerializer()
+    def delete(self, request, pk):
+        Tolov.objects.filter(id=pk).delete()
+        return Response({"succes": "true", "message":"To'lov o'chirildi"}, status=status.HTTP_200_OK)
+
