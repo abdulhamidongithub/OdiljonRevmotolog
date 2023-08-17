@@ -475,7 +475,7 @@ class ChekModelViewSet(ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TolovlarAPIView(APIView):
-    serializer_class = TolovAdminSerializer()
+    serializer_class = TolovAdminSerializer
     def get(self, request):
         queryset = Tolov.objects.all()
         from_date = self.request.query_params.get('from_date')
@@ -544,20 +544,22 @@ class TolovlarAPIView(APIView):
         return Response({'natija_tolovlar': serializer.data, 'umumiy_summa': umumiy_tolanganlar, "qarzdorlik": qarzdorlik}, status=status.HTTP_200_OK)
 
 class TolovDeleteAPIView(APIView):
-    serializer_class = TolovAdminSerializer()
+    serializer_class = TolovAdminSerializer
     def delete(self, request, pk):
         Tolov.objects.filter(id=pk).delete()
         return Response({"succes": "true", "message":"To'lov o'chirildi"}, status=status.HTTP_200_OK)
 
 class UserAPIView(APIView):
-    serializer_class = UserReadSerializer()
+    serializer_class = UserReadSerializer
     def get(self, request):
         users = User.objects.all()
         serializer = UserReadSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+class UserPostView(APIView):
+    serializer_class = UserSerializer
     def post(self, request):
-        serializer = UserReadSerializer(data=request.data)
+        serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             User.objects.create_user(
                 username = serializer.validated_data.get("username"),
@@ -570,7 +572,7 @@ class UserAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request):
-        serializer = UserReadSerializer(data=request.data)
+        serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             user = User.objects.filter(username=serializer.validated_data.get("username"))
             if len(user) == 0:

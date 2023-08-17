@@ -114,6 +114,11 @@ class UserReadSerializer(ModelSerializer):
         data.update({'role': hozirgi_user.first_name})
         return data
 
+class UserSerializer(Serializer):
+    username = serializers.CharField(max_length=30)
+    password = serializers.CharField(max_length=30)
+    role = serializers.CharField(max_length=30)
+
 class ChekSerializer(ModelSerializer):
     class Meta:
         model = Chek
