@@ -568,3 +568,16 @@ class UserAPIView(APIView):
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        serializer = UserReadSerializer(data=request.data)
+        if serializer.is_valid():
+            user = User.objects.filter(username=serializer.validated_data.get("username"))
+            if len(user) == 0:
+                return Response({"success": "False", "xabar": "User topilmadi"})
+            user[0].set_password(serializer.validated_data.get("password"))
+            user[0].first_name = serializer.validated_data.get('role')
+            user[0].save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
