@@ -117,6 +117,7 @@ class Chek(models.Model):
     bemor_id = models.ForeignKey(Bemor, on_delete=models.SET_NULL, null=True)
     sana = models.DateField()
     tolov_maqsadlar = models.JSONField(default=list())
+    tolov_id = models.ForeignKey(Tolov, on_delete=models.CASCADE, null=True, blank=True)
     def __str__(self):
         if self.bemor_id:
             return f"{self.bemor_id.ism} ({self.sana})"

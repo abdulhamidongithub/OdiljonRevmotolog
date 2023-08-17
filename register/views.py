@@ -330,6 +330,9 @@ class JoylashtirishModelViewSet(ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, *args, **kwargs):
+        # current_time = datetime.datetime.now()
+        # current_hour = current_time.hour
+        # current_minutes = current_time.minute
         joylashtirish = self.get_object()
         data = request.data
         serializer = JoylashtirishSerializer(joylashtirish, data=data)
@@ -341,6 +344,13 @@ class JoylashtirishModelViewSet(ModelViewSet):
                 patient.save()
                 tolov = Tolov.objects.get(joylashtirish_id=joylashtirish)
                 xona = Xona.objects.get(id=joylashtirish.xona_id.id)
+                # boshi = datetime.datetime.strptime(str(joylashtirish.kelish_sanasi), "%Y-%m-%d")
+                # oxiri = datetime.datetime.strptime(str(joylashtirish.ketish_sanasi), "%Y-%m-%d")
+                # if (current_hour >= 13) or (current_hour == 12 and current_minutes > 30):
+                #     joylashtirish.yotgan_kun_soni = abs((boshi - oxiri).days) + 1
+                # else:
+                #     joylashtirish.yotgan_kun_soni = abs((boshi - oxiri).days)
+                # joylashtirish.save()
                 if joylashtirish.qarovchi:
                     if joylashtirish.ketish_sanasi:
                         xona.bosh_joy_soni += 2
@@ -455,6 +465,11 @@ class ChekModelViewSet(ModelViewSet):
                                 t += i.get("summa")
                         if t == tolov.summa:
                             tolov.tolandi = True
+                        elif t < tolov.summa:
+                            tolov.tolandi = False
+                        elif t > tolov.summa:
+                            tolov.haqdor = True
+                            tolov.tolandi = False
                     tolov.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -533,4 +548,12 @@ class TolovDeleteAPIView(APIView):
     def delete(self, request, pk):
         Tolov.objects.filter(id=pk).delete()
         return Response({"succes": "true", "message":"To'lov o'chirildi"}, status=status.HTTP_200_OK)
+
+class UserAPIView(APIView):
+    serializer_class = UserReadSerializer()
+    def get(self, request):
+        users = User.objects.all()
+        serializer = UserReadSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
