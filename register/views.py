@@ -556,4 +556,15 @@ class UserAPIView(APIView):
         serializer = UserReadSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
+    def post(self, request):
+        serializer = UserReadSerializer(data=request.data)
+        if serializer.is_valid():
+            User.objects.create_user(
+                username = serializer.validated_data.get("username"),
+                password = serializer.validated_data.get("password"),
+                first_name = serializer.validated_data.get("role"),
+                is_staff = True,
+                is_active = True
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
