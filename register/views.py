@@ -463,12 +463,14 @@ class ChekModelViewSet(ModelViewSet):
                         for i in tolov.tolangan_summa:
                             if i.get('summa'):
                                 t += i.get("summa")
-                        if t == tolov.summa:
+                        if t == tolov.summa and tolov.joylashtirish_id.ketish_sanasi is not None:
                             tolov.tolandi = True
                         elif t < tolov.summa:
                             tolov.tolandi = False
-                        elif t > tolov.summa:
+                        elif t > tolov.summa and tolov.joylashtirish_id.ketish_sanasi is not None:
                             tolov.haqdor = True
+                            tolov.tolandi = False
+                        elif t > tolov.summa:
                             tolov.tolandi = False
                     tolov.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -485,9 +487,21 @@ class TolovlarAPIView(APIView):
         joylashtirish = self.request.query_params.get('joylashtirish_id')
         yollanma = self.request.query_params.get('yollanma_id')
         qaytarildi = self.request.query_params.get('tolov_qaytarildi')
+        tolandi = self.request.query_params.get('tolandi')
+        search = self.request.query_params.get('search')
         pagination_class = PageNumberPagination
         pagination_class.page_size = 30
         paginator = PageNumberPagination()
+        if search:
+            queryset = queryset.filter(bemor_id__ism__icontains=search) | queryset.filter(
+                bemor_id__familiya__icontains=search) | queryset.filter(bemor_id__sharif__icontains=search) | queryset.filter(
+                bemor_id__tel__icontains=search)
+            if yollanma:
+                queryset = queryset.filter(yollanma_id__isnull=False)
+            elif joylashtirish:
+                queryset = queryset.filter(joylashtirish_id__isnull=False)
+            elif search_word:
+                queryset = queryset.filter(yollanma_id__qayerga=search_word)
         if from_date and to_date and search_word:
             queryset = queryset.filter(sana__range=(from_date, to_date), yollanma_id__qayerga=search_word,
                             tolangan_sana__isnull=True) | queryset.filter(
@@ -528,6 +542,11 @@ class TolovlarAPIView(APIView):
             queryset = queryset.filter(sana=by_date, yollanma_id__isnull=False,
                                        tolangan_sana__isnull=True) | queryset.filter(
                 tolangan_sana=by_date, yollanma_id__isnull=False)
+        if tolandi is not None:
+            if tolandi == 'false':
+                queryset = queryset.filter(tolandi=False)
+            else:
+                queryset = queryset.filter(tolandi=True)
         if qaytarildi == 'true':
             queryset = Tolov.objects.filter(tolov_qaytarildi=True)
         paginated_queryset = paginator.paginate_queryset(queryset, request)
@@ -541,7 +560,12 @@ class TolovlarAPIView(APIView):
             qarzdorlik = qarzdorlik + tolov.summa - t
             umumiy_tolanganlar += t
         serializer = TolovAdminSerializer(paginated_queryset, many=True)
-        return Response({'natija_tolovlar': serializer.data, 'umumiy_summa': umumiy_tolanganlar, "qarzdorlik": qarzdorlik}, status=status.HTTP_200_OK)
+        import math
+        total_pages = math.ceil(len(queryset) / 30)
+        return Response({'natija_tolovlar': serializer.data,
+                         'umumiy_summa': umumiy_tolanganlar,
+                         "qarzdorlik": qarzdorlik,
+                         "sahifalar_soni": total_pages}, status=status.HTTP_200_OK)
 
 class TolovDeleteAPIView(APIView):
     serializer_class = TolovAdminSerializer
