@@ -454,24 +454,25 @@ class ChekModelViewSet(ModelViewSet):
                 tolovlar = check_to_be_created.get('tolov_maqsadlar')
                 for i in tolovlar:
                     tolov = Tolov.objects.get(id=i.get('tolov_id'))
-                    tolov.tolangan_summa.append({"summa": int(i.get('summa')), "sana": check_to_be_created.get('sana')})
-                    tolov.tolangan_sana = check_to_be_created.get('sana')
-                    if tolov.yollanma_id:
-                        tolov.tolandi = True
-                    else:
-                        t = 0
-                        for i in tolov.tolangan_summa:
-                            if i.get('summa'):
-                                t += i.get("summa")
-                        if t == tolov.summa and tolov.joylashtirish_id.ketish_sanasi is not None:
+                    if tolov.tolandi != True:
+                        tolov.tolangan_summa.append({"summa": int(i.get('summa')), "sana": check_to_be_created.get('sana')})
+                        tolov.tolangan_sana = check_to_be_created.get('sana')
+                        if tolov.yollanma_id:
                             tolov.tolandi = True
-                        elif t < tolov.summa:
-                            tolov.tolandi = False
-                        elif t > tolov.summa and tolov.joylashtirish_id.ketish_sanasi is not None:
-                            tolov.haqdor = True
-                            tolov.tolandi = False
-                        elif t > tolov.summa:
-                            tolov.tolandi = False
+                        else:
+                            t = 0
+                            for i in tolov.tolangan_summa:
+                                if i.get('summa'):
+                                    t += i.get("summa")
+                            if t == tolov.summa and tolov.joylashtirish_id.ketish_sanasi is not None:
+                                tolov.tolandi = True
+                            elif t < tolov.summa:
+                                tolov.tolandi = False
+                            elif t > tolov.summa and tolov.joylashtirish_id.ketish_sanasi is not None:
+                                tolov.haqdor = True
+                                tolov.tolandi = False
+                            elif t > tolov.summa:
+                                tolov.tolandi = False
                     tolov.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
