@@ -547,6 +547,10 @@ class TolovlarAPIView(APIView):
                 queryset = queryset.filter(tolandi=False)
             else:
                 queryset = queryset.filter(tolandi=True)
+            if joylashtirish:
+                queryset = queryset.filter(joylashtirish_id__isnull=False)
+            elif yollanma:
+                queryset = queryset.filter(yollanma_id__isnull=False)
         if qaytarildi == 'true':
             queryset = Tolov.objects.filter(tolov_qaytarildi=True)
         paginated_queryset = paginator.paginate_queryset(queryset, request)
