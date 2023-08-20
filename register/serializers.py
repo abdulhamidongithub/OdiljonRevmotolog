@@ -106,17 +106,19 @@ class TolovPatch(Serializer):
 class UserReadSerializer(ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'password']
+        fields = ['username', 'password', "first_name", "last_name"]
 
     def to_representation(self, instance):
         data = super(UserReadSerializer, self).to_representation(instance)
         hozirgi_user = User.objects.get(username=data.get('username'))
-        data.update({'role': hozirgi_user.first_name})
+        data.update({'role': hozirgi_user.email})
         return data
 
 class UserSerializer(Serializer):
     username = serializers.CharField(max_length=30)
     password = serializers.CharField(max_length=30)
+    first_name = serializers.CharField(max_length=30)
+    last_name = serializers.CharField(max_length=30)
     role = serializers.CharField(max_length=30)
 
 class ChekSerializer(ModelSerializer):

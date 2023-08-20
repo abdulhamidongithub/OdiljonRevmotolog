@@ -597,7 +597,9 @@ class UserPostView(APIView):
             User.objects.create_user(
                 username = serializer.validated_data.get("username"),
                 password = serializer.validated_data.get("password"),
-                first_name = serializer.validated_data.get("role"),
+                first_name = serializer.validated_data.get("first_name"),
+                last_name = serializer.validated_data.get("last_name"),
+                email = serializer.validated_data.get("role"),
                 is_staff = True,
                 is_active = True
             )
