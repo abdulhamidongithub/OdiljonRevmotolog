@@ -43,6 +43,7 @@ urlpatterns = [
     path('admin_tolovlar/', TolovlarAPIView.as_view()),
     path('users/', UserAPIView.as_view()),
     path('user_create/', UserPostView.as_view()),
+    path('user_update/<int:pk>/', UserPutAPIView.as_view()),
     path('admin_tolov/delete/<int:pk>/', TolovDeleteAPIView.as_view()),
     path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),

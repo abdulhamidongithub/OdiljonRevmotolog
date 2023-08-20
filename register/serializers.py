@@ -130,7 +130,7 @@ class YollanmaReadSerializer(ModelSerializer):
         fields = '__all__'
 
 class TolovAdminSerializer(ModelSerializer):
-    joylashtirish_id = JoylashtirishSerializer()
+    joylashtirish_id = JoylashtirishReadSerializer()
     yollanma_id = YollanmaReadSerializer()
     class Meta:
         model = Tolov

@@ -604,7 +604,9 @@ class UserPostView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request):
+class UserPutAPIView(APIView):
+    serializer_class = UserSerializer
+    def put(self, request, pk):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             user = User.objects.filter(username=serializer.validated_data.get("username"))
