@@ -543,6 +543,10 @@ class TolovlarAPIView(APIView):
             queryset = queryset.filter(sana=by_date, yollanma_id__isnull=False,
                                        tolangan_sana__isnull=True) | queryset.filter(
                 tolangan_sana=by_date, yollanma_id__isnull=False)
+        elif yollanma and qaytarildi:
+            queryset = queryset.filter(tolov_qaytarildi=True, yollanma_id__isnull=False)
+        elif joylashtirish and qaytarildi:
+            queryset = queryset.filter(tolov_qaytarildi=True, joylashtirish_id__isnull=False)
         if tolandi is not None:
             if tolandi == 'false':
                 queryset = queryset.filter(tolandi=False)
