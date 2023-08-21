@@ -566,7 +566,8 @@ class TolovlarAPIView(APIView):
             for i in tolov.tolangan_summa:
                 if i.get('summa') is not None:
                     t += i.get('summa')
-            qarzdorlik = qarzdorlik + tolov.summa - t
+            if t <= tolov.summa:
+                qarzdorlik = qarzdorlik + tolov.summa - t
             umumiy_tolanganlar += t
         serializer = TolovAdminSerializer(paginated_queryset, many=True)
         import math
