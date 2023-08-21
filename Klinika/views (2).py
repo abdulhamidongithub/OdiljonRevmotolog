@@ -457,11 +457,8 @@ class ChekModelViewSet(ModelViewSet):
     def get_queryset(self):
         queryset = Chek.objects.all()
         bemor = self.request.query_params.get("bemor_id")
-        oxirgisi = self.request.query_params.get("oxirgisi")
         if bemor:
             queryset = queryset.filter(bemor_id__id=int(bemor))
-        elif oxirgisi:
-            queryset = queryset.filter(id=queryset.last().id)
         return queryset
 
     def create(self, request, *args, **kwargs):
