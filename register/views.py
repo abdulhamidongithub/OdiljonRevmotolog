@@ -172,12 +172,32 @@ class TolovModelViewSet(ModelViewSet):
         search_word = self.request.query_params.get('qayerga')
         xulosa_status = self.request.query_params.get('xulosa_holati')
         date = self.request.query_params.get('sana')
+        t_date = self.request.query_params.get('tolangan_sana')
+        bemor = self.request.query_params.get('bemor_id')
+        tolandi = self.request.query_params.get('tolandi')
         queryset = Tolov.objects.all()
-        if search_word:
+        if bemor and (tolandi is not None or t_date or date):
+            queryset = queryset.filter(bemor_id__id=int(bemor))
+            if date:
+               queryset = queryset.filter(sana = date)
+            elif t_date:
+                tolovs = Tolov.objects.filter(id=None)
+                for obj in queryset:
+                    for item in obj.tolangan_summa:
+                        if item.get('sana') == t_date:
+                            tolovs = tolovs | Tolov.objects.filter(id=obj.id)
+                            break
+                queryset = tolovs
+            else:
+                if tolandi == 'false':
+                    queryset = queryset.filter(tolandi=False)
+                else:
+                    queryset = queryset.filter(tolandi=True)
+        elif search_word:
             queryset = queryset.filter(yollanma_id__qayerga__contains=search_word)
-        if xulosa_status:
+        elif xulosa_status:
             queryset = queryset.filter(xulosa_holati=xulosa_status)
-        if date:
+        elif date:
             queryset = queryset.filter(sana=date)
         serializer = TolovReadSerializer(queryset, many=True)
         tolovlar = Tolov.objects.filter(joylashtirish_id__isnull=False, joylashtirish_id__ketish_sanasi__isnull=True)
@@ -302,7 +322,11 @@ class JoylashtirishModelViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
-        serializer = JoylashtirishReadSerializer(self.queryset, many=True)
+        ketish_sana = self.request.query_params.get("ketish_sanasi")
+        queryset = self.queryset
+        if ketish_sana is not None:
+            queryset = queryset.filter(ketish_sanasi__isnull=True)
+        serializer = JoylashtirishReadSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
@@ -575,8 +599,6 @@ class TolovlarAPIView(APIView):
                 queryset = queryset.filter(joylashtirish_id__isnull=False)
             elif yollanma:
                 queryset = queryset.filter(yollanma_id__isnull=False)
-        if qaytarildi == 'true':
-            queryset = Tolov.objects.filter(tolov_qaytarildi=True)
         paginated_queryset = paginator.paginate_queryset(queryset, request)
         umumiy_tolanganlar = 0
         qarzdorlik = 0
@@ -640,3 +662,10 @@ class UserPutAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class HammaXonalarView(APIView):
+    serializer_class = XonaSerializer
+    def get(self, request):
+        joylashtirishlar = Joylashtirish.objects.filter(ketish_sanasi__isnull=True).values("xona_id").distinct()
+        xonalar = Xona.objects.filter()
+        print(joylashtirishlar)
+        return Response({"data":"data"})

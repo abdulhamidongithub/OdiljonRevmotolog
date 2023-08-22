@@ -42,6 +42,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('admin_tolovlar/', TolovlarAPIView.as_view()),
     path('users/', UserAPIView.as_view()),
+    path('hamma_xonalar/', HammaXonalarView.as_view()),
     path('user_create/', UserPostView.as_view()),
     path('user_update/<int:pk>/', UserPutAPIView.as_view()),
     path('admin_tolov/delete/<int:pk>/', TolovDeleteAPIView.as_view()),
