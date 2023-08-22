@@ -66,7 +66,6 @@ class JoylashtirishReadSerializer(ModelSerializer):
         fields = '__all__'
 
 class TolovReadSerializer(ModelSerializer):
-    # bemor_id = BemorSerializer(read_only=True)
     yollanma_id = YollanmaSerializer(read_only=True)
     joylashtirish_id = JoylashtirishReadSerializer(read_only=True)
     class Meta:
@@ -102,11 +101,13 @@ class TolovPatch(Serializer):
     tolangan_sana = serializers.DateField(allow_null=True)
     tolandi = serializers.BooleanField()
     xulosa_holati = serializers.CharField(allow_blank=True, allow_null=True)
+    tolov_qaytarildi = serializers.BooleanField(allow_null=True, default=False)
+    izoh = serializers.CharField(allow_blank=True, allow_null=True)
 
 class UserReadSerializer(ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'password', "first_name", "last_name"]
+        fields = ["id",'username', 'password', "first_name", "last_name"]
 
     def to_representation(self, instance):
         data = super(UserReadSerializer, self).to_representation(instance)
@@ -143,3 +144,35 @@ class TolovAdminSerializer(ModelSerializer):
         data.update({'ism': instance.bemor_id.ism, 'familiya': instance.bemor_id.familiya,
                      "tel": instance.bemor_id.tel})
         return data
+
+class BemorMaxsus(ModelSerializer):
+    class Meta:
+        model = Bemor
+        fields = ['id','ism', 'familiya']
+
+class JoylashtirishMaxsusSerializer(ModelSerializer):
+    bemor_id = BemorMaxsus()
+    class Meta:
+        model = Joylashtirish
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        data = super(JoylashtirishMaxsusSerializer, self).to_representation(instance)
+        tolov = Tolov.objects.get(joylashtirish_id__id=data.get("id"))
+        serializer = TolovSerializer(tolov)
+        data.update({"tolovi": serializer.data})
+        return data
+
+class XonaJoylashuvlariSerializer(ModelSerializer):
+    class Meta:
+        model = Xona
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        data = super(XonaJoylashuvlariSerializer, self).to_representation(instance)
+        bemorlar = Bemor.objects.filter(joylashgan=True)
+        joylashishlar = Joylashtirish.objects.filter(ketish_sanasi__isnull=True, xona_id__id=data.get("id"))
+        joy = JoylashtirishMaxsusSerializer(joylashishlar, many=True)
+        data.update({"joylashtirishlar": joy.data})
+        return data
+

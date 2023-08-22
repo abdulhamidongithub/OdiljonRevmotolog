@@ -29,7 +29,6 @@ class BemorModelViewSet(ModelViewSet):
         t_date = self.request.query_params.get('tolov_date')
         tolandi = self.request.query_params.get('tolov_tolandi')
         y_id = self.request.query_params.get('yollanma_id')
-        j_id = self.request.query_params.get('joylashtirish_id')
         t_from_date = self.request.query_params.get('tolov_from_date')
         t_to_date = self.request.query_params.get('tolov_to_date')
         j_id = self.request.query_params.get('joylashtirish_id')
@@ -45,7 +44,7 @@ class BemorModelViewSet(ModelViewSet):
                 tel__icontains=qidiruv)
         if joylashgan and tolov_sana is None and sana is None:
             queryset = queryset.filter(joylashgan=True)
-        elif sana or joylashgan or tolov_sana:
+        elif sana and joylashgan and tolov_sana:
             tolovlar = Tolov.objects.filter(tolangan_sana=tolov_sana).values("bemor_id").distinct()
             queryset = queryset.filter(joylashgan=True) | queryset.filter(royhatdan_otgan_sana=sana)
             for tolov in tolovlar:
@@ -247,33 +246,20 @@ class TolovModelViewSet(ModelViewSet):
             tolangan_amount = serializer.validated_data.get("tolangan_summa")
             for i in tolangan_amount:
                 t_summa += int(i.get('summa'))
-            if t.joylashtirish_id is not None and t.joylashtirish_id.ketish_sanasi is not None and t.summa == t_summa:
-                t.tolangan_summa = serializer.validated_data.get('tolangan_summa')
-                t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
+            if (t.joylashtirish_id is not None and t.joylashtirish_id.ketish_sanasi is not None and t.summa == t_summa) or (t.yollanma_id is not None and t.summa == t_summa):
                 t.tolandi = True
-                t.xulosa_holati = serializer.validated_data.get('xulosa_holati')
-                t.save()
             elif t.joylashtirish_id is not None and t.joylashtirish_id.ketish_sanasi is not None and t.summa < t_summa:
-                t.tolangan_summa = serializer.validated_data.get('tolangan_summa')
-                t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
                 t.tolandi = False
-                t.xulosa_holati = serializer.validated_data.get('xulosa_holati')
                 t.haqdor = True
-                t.save()
-            elif t.yollanma_id is not None and t.summa == t_summa:
-                t.tolangan_summa = serializer.validated_data.get('tolangan_summa')
-                t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
-                t.tolandi = True
-                t.haqdor = False
-                t.xulosa_holati = serializer.validated_data.get('xulosa_holati')
-                t.save()
             else:
-                t.tolangan_summa = serializer.validated_data.get('tolangan_summa')
-                t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
                 t.tolandi = False
-                t.xulosa_holati = serializer.validated_data.get('xulosa_holati')
-                t.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            t.tolangan_summa = serializer.validated_data.get('tolangan_summa')
+            t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
+            t.xulosa_holati = serializer.validated_data.get('xulosa_holati')
+            t.tolov_qaytarildi = serializer.validated_data.get("tolov_qaytarildi")
+            t.izoh = serializer.validated_data.get("izoh")
+            t.save()
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
 
 class XulosaModelViewSet(ModelViewSet):
@@ -666,6 +652,8 @@ class HammaXonalarView(APIView):
     serializer_class = XonaSerializer
     def get(self, request):
         joylashtirishlar = Joylashtirish.objects.filter(ketish_sanasi__isnull=True).values("xona_id").distinct()
-        xonalar = Xona.objects.filter()
-        print(joylashtirishlar)
-        return Response({"data":"data"})
+        xonalar = Xona.objects.all()
+        serializer = XonaJoylashuvlariSerializer(xonalar, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
