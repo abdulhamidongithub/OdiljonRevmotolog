@@ -643,7 +643,9 @@ class UserPutAPIView(APIView):
             if len(user) == 0:
                 return Response({"success": "False", "xabar": "User topilmadi"})
             user[0].set_password(serializer.validated_data.get("password"))
-            user[0].first_name = serializer.validated_data.get('role')
+            user[0].role = serializer.validated_data.get('role')
+            user[0].first_name = serializer.validated_data.get('first_name')
+            user[0].last_name = serializer.validated_data.get('last_name')
             user[0].save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -651,7 +653,6 @@ class UserPutAPIView(APIView):
 class HammaXonalarView(APIView):
     serializer_class = XonaSerializer
     def get(self, request):
-        joylashtirishlar = Joylashtirish.objects.filter(ketish_sanasi__isnull=True).values("xona_id").distinct()
         xonalar = Xona.objects.all()
         serializer = XonaJoylashuvlariSerializer(xonalar, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
