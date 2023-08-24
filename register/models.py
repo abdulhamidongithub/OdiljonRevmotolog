@@ -3,7 +3,7 @@ from django.db import models
 class Bemor(models.Model):
     ism = models.CharField(max_length=100)
     familiya = models.CharField(max_length=100)
-    sharif = models.CharField(max_length=100, null=True, blank=True)
+    sharif = models.CharField(max_length=100)
     tugilgan_sana = models.DateField(null=True, blank=True)
     tel = models.CharField(max_length=15)
     manzil = models.CharField(max_length=150)

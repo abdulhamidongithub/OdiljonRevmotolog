@@ -12,7 +12,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         # The default result (access/refresh tokens)
         data = super(CustomTokenObtainPairSerializer, self).validate(attrs)
         # Custom data you want to include
-        data.update({'role': self.user.first_name})
+        data.update({'role': self.user.email})
         data.update({"token": data.pop('access')})
         # and everything else you want to send in the response
         return data

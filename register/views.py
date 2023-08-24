@@ -42,13 +42,13 @@ class BemorModelViewSet(ModelViewSet):
             queryset = queryset.filter(ism__icontains=qidiruv)|queryset.filter(
                 familiya__icontains=qidiruv)|queryset.filter(sharif__icontains=qidiruv)|queryset.filter(
                 tel__icontains=qidiruv)
-        if joylashgan and tolov_sana is None and sana is None:
-            queryset = queryset.filter(joylashgan=True)
-        elif sana and joylashgan and tolov_sana:
-            tolovlar = Tolov.objects.filter(tolangan_sana=tolov_sana).values("bemor_id").distinct()
+        if sana and joylashgan and tolov_sana:
+            tolovlar = Tolov.objects.filter(sana=tolov_sana).values("bemor_id").distinct()
             queryset = queryset.filter(joylashgan=True) | queryset.filter(royhatdan_otgan_sana=sana)
             for tolov in tolovlar:
                 queryset = queryset | Bemor.objects.filter(id=tolov.get('bemor_id'))
+        elif joylashgan and tolov_sana is None and sana is None:
+            queryset = queryset.filter(joylashgan=True)
         if tolandi is not None:
             tolovlar = Tolov.objects.filter(tolandi=False).values("bemor_id").distinct()
             for tolov in tolovlar:
@@ -331,6 +331,8 @@ class JoylashtirishModelViewSet(ModelViewSet):
                 serializer.save()
                 joy = Joylashtirish.objects.get(id=serializer.data.get('id'))
                 patient = Bemor.objects.get(id=joy.bemor_id.id)
+                patient.joylashgan = True
+                patient.save()
                 boshi = datetime.datetime.strptime(str(joy.kelish_sanasi), "%Y-%m-%d")
                 oxiri = datetime.datetime.strptime(str(datetime.date.today()), "%Y-%m-%d")
                 joy.yotgan_kun_soni = abs((boshi-oxiri).days) + 1
@@ -342,11 +344,8 @@ class JoylashtirishModelViewSet(ModelViewSet):
                 Tolov.objects.create(
                     bemor_id = patient,
                     joylashtirish_id = joy,
-                    summa = s,
-                    tolangan_summa = []
+                    summa = s
                 )
-                patient.joylashgan = True
-                patient.save()
                 if qarovchi_bor:
                     xona.bosh_joy_soni -= 2
                 else:
@@ -542,21 +541,18 @@ class TolovlarAPIView(APIView):
                 tolangan_sana=by_date, yollanma_id__qayerga=search_word)
         elif from_date and to_date and joylashtirish:
             queryset = queryset.filter(sana__range=(from_date, to_date), joylashtirish_id__isnull=False,
-                            tolangan_sana__isnull=True) | queryset.filter(
-                tolangan_sana__range=(from_date, to_date), joylashtirish_id__isnull=False)
-            all_objects = Tolov.objects.filter(joylashtirish_id__isnull=False, tolandi=False)
+                            tolangan_sana__isnull=True)
+            all_objects = Tolov.objects.filter(joylashtirish_id__isnull=False)
             tolovs = Tolov.objects.filter(id=None)
             for obj in all_objects:
                 for item in obj.tolangan_summa:
-                    if item.get('sana') == by_date:
+                    if from_date<=item.get('sana')<=to_date:
                         tolovs = tolovs | Tolov.objects.filter(id=obj.id)
                         break
             queryset = queryset | tolovs
         elif joylashtirish and by_date:
-            queryset = queryset.filter(sana=by_date, joylashtirish_id__isnull=False,
-                                       tolangan_sana__isnull=True) | queryset.filter(
-                tolangan_sana=by_date, joylashtirish_id__isnull=False)
-            all_objects = Tolov.objects.filter(joylashtirish_id__isnull=False, tolandi=False)
+            queryset = queryset.filter(sana=by_date, joylashtirish_id__isnull=False, tolangan_summa=[])
+            all_objects = Tolov.objects.filter(joylashtirish_id__isnull=False)
             tolovs = Tolov.objects.filter(id=None)
             for obj in all_objects:
                 for item in obj.tolangan_summa:
@@ -588,14 +584,39 @@ class TolovlarAPIView(APIView):
         paginated_queryset = paginator.paginate_queryset(queryset, request)
         umumiy_tolanganlar = 0
         qarzdorlik = 0
-        for tolov in queryset:
-            t = 0
-            for i in tolov.tolangan_summa:
-                if i.get('summa') is not None:
-                    t += i.get('summa')
-            if t <= tolov.summa:
-                qarzdorlik = qarzdorlik + tolov.summa - t
-            umumiy_tolanganlar += t
+        if by_date:
+            for tolov in queryset:
+                t = 0
+                sanadagi = 0
+                for i in tolov.tolangan_summa:
+                    if i.get('summa') is not None:
+                        t += i.get('summa')
+                    if i.get('summa') is not None and i.get("sana") == by_date:
+                        sanadagi += i.get('summa')
+                if t <= tolov.summa:
+                    qarzdorlik = qarzdorlik + tolov.summa - t
+                umumiy_tolanganlar += sanadagi
+        elif from_date and to_date:
+            for tolov in queryset:
+                t = 0
+                sanadagi = 0
+                for i in tolov.tolangan_summa:
+                    if i.get('summa') is not None:
+                        t += i.get('summa')
+                    if i.get('summa') is not None and from_date<=i.get("sana")<=to_date:
+                        sanadagi += i.get('summa')
+                if t <= tolov.summa:
+                    qarzdorlik = qarzdorlik + tolov.summa - t
+                umumiy_tolanganlar += sanadagi
+        else:
+            for tolov in queryset:
+                t = 0
+                for i in tolov.tolangan_summa:
+                    if i.get('summa') is not None:
+                        t += i.get('summa')
+                if t <= tolov.summa:
+                    qarzdorlik = qarzdorlik + tolov.summa - t
+                umumiy_tolanganlar += t
         serializer = TolovAdminSerializer(paginated_queryset, many=True)
         import math
         total_pages = math.ceil(len(queryset) / 30)
@@ -639,11 +660,12 @@ class UserPutAPIView(APIView):
     def put(self, request, pk):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
-            user = User.objects.filter(username=serializer.validated_data.get("username"))
+            user = User.objects.filter(id=pk)
             if len(user) == 0:
                 return Response({"success": "False", "xabar": "User topilmadi"})
             user[0].set_password(serializer.validated_data.get("password"))
-            user[0].role = serializer.validated_data.get('role')
+            user[0].email = serializer.validated_data.get('role')
+            user[0].username = serializer.validated_data.get('username')
             user[0].first_name = serializer.validated_data.get('first_name')
             user[0].last_name = serializer.validated_data.get('last_name')
             user[0].save()
