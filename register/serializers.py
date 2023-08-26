@@ -32,16 +32,21 @@ class BemorSerializer(ModelSerializer):
         data.update({'tolovlar': serializer.data, 'joylashishlar': serializer_.data})
         return data
 
-
-class XulosaShablonSerializer(ModelSerializer):
-    class Meta:
-        model = XulosaShablon
-        fields = '__all__'
-
 class YollanmaSerializer(ModelSerializer):
-    xulosa_shablon_id = XulosaShablonSerializer(read_only=True)
     class Meta:
         model = Yollanma
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        data = super(YollanmaSerializer, self).to_representation(instance)
+        subs = SubYollanma.objects.filter(yollanma_id=instance)
+        ser = SubYollanmaSerializer(subs, many=True)
+        data.update({"subyollanmalar": ser.data})
+        return data
+
+class SubYollanmaSerializer(ModelSerializer):
+    class Meta:
+        model = SubYollanma
         fields = '__all__'
 
 class TolovSerializer(ModelSerializer):
@@ -66,6 +71,7 @@ class JoylashtirishReadSerializer(ModelSerializer):
         fields = '__all__'
 
 class TolovReadSerializer(ModelSerializer):
+    subyollanma_idlar = SubYollanmaSerializer(read_only=True, many=True)
     yollanma_id = YollanmaSerializer(read_only=True)
     joylashtirish_id = JoylashtirishReadSerializer(read_only=True)
     class Meta:
@@ -73,7 +79,7 @@ class TolovReadSerializer(ModelSerializer):
         fields = '__all__'
 
 class TolovReadBemorUchun(ModelSerializer):
-    yollanma_id = YollanmaSerializer(read_only=True)
+    subyollanma_idlar = SubYollanmaSerializer(read_only=True, many=True)
     class Meta:
         model = Tolov
         fields = '__all__'
@@ -107,19 +113,18 @@ class TolovPatch(Serializer):
 class UserReadSerializer(ModelSerializer):
     class Meta:
         model = User
-        fields = ["id",'username', 'password', "first_name", "last_name"]
+        fields = ["id",'username', 'password', "first_name"]
 
     def to_representation(self, instance):
         data = super(UserReadSerializer, self).to_representation(instance)
         hozirgi_user = User.objects.get(username=data.get('username'))
-        data.update({'role': hozirgi_user.email})
+        data.update({'role': hozirgi_user.last_name})
         return data
 
 class UserSerializer(Serializer):
     username = serializers.CharField(max_length=30)
     password = serializers.CharField(max_length=30)
-    first_name = serializers.CharField(max_length=30)
-    last_name = serializers.CharField(max_length=30)
+    ism_familiya = serializers.CharField(max_length=30)
     role = serializers.CharField(max_length=30)
 
 class ChekSerializer(ModelSerializer):
@@ -170,7 +175,6 @@ class XonaJoylashuvlariSerializer(ModelSerializer):
 
     def to_representation(self, instance):
         data = super(XonaJoylashuvlariSerializer, self).to_representation(instance)
-        bemorlar = Bemor.objects.filter(joylashgan=True)
         joylashishlar = Joylashtirish.objects.filter(ketish_sanasi__isnull=True, xona_id__id=data.get("id"))
         joy = JoylashtirishMaxsusSerializer(joylashishlar, many=True)
         data.update({"joylashtirishlar": joy.data})

@@ -20,8 +20,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class BemorModelViewSet(ModelViewSet):
     queryset = Bemor.objects.all()
     serializer_class = BemorSerializer
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]
+    # authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
         queryset = Bemor.objects.all()
@@ -151,8 +151,8 @@ class BemorModelViewSet(ModelViewSet):
 class TolovModelViewSet(ModelViewSet):
     queryset = Tolov.objects.all()
     serializer_class = TolovSerializer
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def destroy(self, request, *args, **kwargs):
         tolov = self.get_object()
@@ -242,6 +242,12 @@ class TolovModelViewSet(ModelViewSet):
         if serializer.is_valid():
             with transaction.atomic():
                 t = 0
+                if serializer.validated_data.get("subyollanma_idlar"):
+                    subs = serializer.validated_data.get("subyollanma_idlar")
+                    summasi = 0
+                    for i in subs:
+                        summasi += int(SubYollanma.objects.get(id=i.id).narx)
+                    serializer.validated_data['summa'] = summasi
                 tolangan_amount = serializer.validated_data.get("tolangan_summa")
                 for i in tolangan_amount:
                     t += int(i.get('summa'))
@@ -406,15 +412,15 @@ class JoylashtirishModelViewSet(ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class XulosaShablonModelViewSet(ModelViewSet):
-    queryset = XulosaShablon.objects.all()
-    serializer_class = XulosaShablonSerializer
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
 class YollanmaModelViewSet(ModelViewSet):
     queryset = Yollanma.objects.all()
     serializer_class = YollanmaSerializer
+    # authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]
+
+class SubYollanmaModelViewSet(ModelViewSet):
+    queryset = SubYollanma.objects.all()
+    serializer_class = SubYollanmaSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -653,9 +659,8 @@ class UserPostView(APIView):
             User.objects.create_user(
                 username = serializer.validated_data.get("username"),
                 password = serializer.validated_data.get("password"),
-                first_name = serializer.validated_data.get("first_name"),
-                last_name = serializer.validated_data.get("last_name"),
-                email = serializer.validated_data.get("role"),
+                first_name = serializer.validated_data.get("ism_familiya"),
+                last_name = serializer.validated_data.get("role"),
                 is_staff = True,
                 is_active = True
             )
@@ -671,10 +676,9 @@ class UserPutAPIView(APIView):
             if len(user) == 0:
                 return Response({"success": "False", "xabar": "User topilmadi"})
             user[0].set_password(serializer.validated_data.get("password"))
-            user[0].email = serializer.validated_data.get('role')
+            user[0].last_name = serializer.validated_data.get('role')
             user[0].username = serializer.validated_data.get('username')
-            user[0].first_name = serializer.validated_data.get('first_name')
-            user[0].last_name = serializer.validated_data.get('last_name')
+            user[0].first_name = serializer.validated_data.get('ism_familiya')
             user[0].save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -686,4 +690,12 @@ class HammaXonalarView(APIView):
         serializer = XonaJoylashuvlariSerializer(xonalar, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
+class HozirgiSana(APIView):
+    def get(self, request):
+        today = datetime.datetime.today()
+        d = {
+            "sana": str(today)[:10],
+            "soat": str(today)[11:13],
+            "daqiqa": str(today)[14:16]
+        }
+        return Response(d)

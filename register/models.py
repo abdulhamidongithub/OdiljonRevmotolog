@@ -28,31 +28,21 @@ class Xona(models.Model):
         return f'{self.qavat} - qavat. {self.raqami} - xona'
 
 
-class XulosaShablon(models.Model):
-    xulosa_name = models.TextField()
-    header_text = models.TextField(null=True, blank=True)
-    footer_text = models.TextField(null=True, blank=True)
-    def __str__(self):
-        return self.xulosa_name
-
 class Yollanma(models.Model):
     nom = models.CharField(max_length=300)
-    narx = models.IntegerField()
+    header_text = models.TextField(null=True, blank=True)
+    footer_text = models.TextField(null=True, blank=True)
     qayerga = models.CharField(max_length=50)  # Labaratoriya, UZI, EKG, Doktor
-    xulosa_shablon_id = models.ForeignKey(XulosaShablon, on_delete=models.SET_NULL, null=True, blank=True)
     def __str__(self):
         return f"{self.nom}."
 
-
-    def save(self, *args, **kwargs):
-        if not self.xulosa_shablon_id:
-            new_one = XulosaShablon.objects.create(
-                xulosa_name = self.nom
-            )
-            self.xulosa_shablon_id = new_one
-        super(Yollanma, self).save(*args, **kwargs)
-        self.xulosa_shablon_id.xulosa_name = self.nom
-        self.xulosa_shablon_id.save()
+class SubYollanma(models.Model):
+    nom = models.CharField(max_length=500)
+    matn = models.TextField()
+    narx = models.IntegerField()
+    yollanma_id = models.ForeignKey(Yollanma, on_delete=models.CASCADE)
+    def __str__(self):
+        return self.matn
 
 class Joylashtirish(models.Model):
     bemor_id = models.ForeignKey(Bemor, on_delete=models.CASCADE)
@@ -71,6 +61,7 @@ class Tolov(models.Model):
     sana = models.DateField(auto_now_add=True)
     turi = models.CharField(choices=(('Naqd', 'Naqd'), ('Plastik', 'Plastik')), blank=True, max_length=50)
     tolandi = models.BooleanField(default=False)  # to'landi, qarzdor
+    subyollanma_idlar = models.ManyToManyField(SubYollanma, null=True, blank=True)  # 3
     yollanma_id = models.ForeignKey(Yollanma, on_delete=models.CASCADE, null=True, blank=True)  # 3
     joylashtirish_id = models.ForeignKey(Joylashtirish, on_delete=models.CASCADE, null=True, blank=True) # 2
     xulosa_holati = models.CharField(max_length=30, blank=True, null=True, choices=(

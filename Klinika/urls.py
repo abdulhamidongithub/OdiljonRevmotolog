@@ -20,8 +20,8 @@ router.register('xulosalar', XulosaModelViewSet)
 router.register('xonalar', XonaModelViewSet)
 router.register('bosh_xonalar', BoshXonalarModelViewSet)
 router.register('joylashtirishlar', JoylashtirishModelViewSet)
-router.register('xulosa_shablonlar', XulosaShablonModelViewSet)
 router.register('yollanmalar', YollanmaModelViewSet)
+router.register('sub_yollanmalar', SubYollanmaModelViewSet)
 router.register('tolov_qaytarishlar', TolovQaytarishViewSet)
 router.register('cheklar', ChekModelViewSet)
 
@@ -41,6 +41,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
     path('admin_tolovlar/', TolovlarAPIView.as_view()),
+    path('sana/', HozirgiSana.as_view()),
     path('users/', UserAPIView.as_view()),
     path('hamma_xonalar/', HammaXonalarView.as_view()),
     path('user_create/', UserPostView.as_view()),
