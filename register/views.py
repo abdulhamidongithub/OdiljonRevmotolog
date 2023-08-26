@@ -415,8 +415,8 @@ class JoylashtirishModelViewSet(ModelViewSet):
 class YollanmaModelViewSet(ModelViewSet):
     queryset = Yollanma.objects.all()
     serializer_class = YollanmaSerializer
-    # authentication_classes = [JWTAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
 class SubYollanmaModelViewSet(ModelViewSet):
     queryset = SubYollanma.objects.all()
