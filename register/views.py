@@ -20,8 +20,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class BemorModelViewSet(ModelViewSet):
     queryset = Bemor.objects.all()
     serializer_class = BemorSerializer
-    # permission_classes = [IsAuthenticated]
-    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
         queryset = Bemor.objects.all()
@@ -191,6 +191,8 @@ class TolovModelViewSet(ModelViewSet):
         t_date = self.request.query_params.get('tolangan_sana')
         bemor = self.request.query_params.get('bemor_id')
         tolandi = self.request.query_params.get('tolandi')
+        t_tolandi = self.request.query_params.get('tolov_tolandi')
+        tolov_date = self.request.query_params.get('tolov_date')
         queryset = Tolov.objects.all()
         if bemor and (tolandi is not None or t_date or date):
             queryset = queryset.filter(bemor_id__id=int(bemor))
@@ -209,6 +211,12 @@ class TolovModelViewSet(ModelViewSet):
                     queryset = queryset.filter(tolandi=False)
                 else:
                     queryset = queryset.filter(tolandi=True)
+        elif bemor and t_tolandi is not None and tolov_date:
+            queryset = queryset.filter(bemor_id__id=int(bemor))|queryset.filter(sana=tolov_date)|queryset.filter(tolangan_sana=tolov_date)
+            if tolandi == 'false':
+                queryset = queryset.filter(tolandi=False)
+            else:
+                queryset = queryset.filter(tolandi=True)
         elif search_word:
             queryset = queryset.filter(yollanma_id__qayerga__contains=search_word)
         elif xulosa_status:
