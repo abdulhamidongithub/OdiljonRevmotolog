@@ -33,6 +33,8 @@ class Yollanma(models.Model):
     header_text = models.TextField(null=True, blank=True)
     footer_text = models.TextField(null=True, blank=True)
     qayerga = models.CharField(max_length=50)  # Labaratoriya, UZI, EKG, Doktor
+    narx = models.PositiveIntegerField(default=0)
+
     def __str__(self):
         return f"{self.nom}."
 
