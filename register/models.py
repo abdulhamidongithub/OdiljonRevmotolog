@@ -51,6 +51,8 @@ class Joylashtirish(models.Model):
     xona_id = models.ForeignKey(Xona, on_delete=models.CASCADE)
     kelish_sanasi = models.DateField()
     ketish_sanasi = models.DateField(null=True, blank=True)  # ketgandan so'ng tahrirlanadi
+    kelish_vaqti = models.TimeField(null=True, blank=True)
+    ketish_vaqti = models.TimeField(null=True, blank=True)
     qarovchi = models.BooleanField(default=False)
     yotgan_kun_soni = models.PositiveSmallIntegerField(default=0, null=True, blank=True)
     def __str__(self):
@@ -109,6 +111,7 @@ class TolovQaytarish(models.Model):
 class Chek(models.Model):
     bemor_id = models.ForeignKey(Bemor, on_delete=models.SET_NULL, null=True)
     sana = models.DateField()
+    vaqt = models.TimeField(null=True, blank=True)
     tolov_maqsadlar = models.JSONField(default=list())
     tolov_id = models.ForeignKey(Tolov, on_delete=models.CASCADE, null=True, blank=True)
     def __str__(self):

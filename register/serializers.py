@@ -79,6 +79,7 @@ class TolovReadSerializer(ModelSerializer):
         fields = '__all__'
 
 class TolovReadBemorUchun(ModelSerializer):
+    yollanma_id = YollanmaSerializer(read_only=True)
     subyollanma_idlar = SubYollanmaSerializer(read_only=True, many=True)
     class Meta:
         model = Tolov

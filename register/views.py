@@ -119,6 +119,8 @@ class BemorModelViewSet(ModelViewSet):
                 queryset = queryset | Bemor.objects.filter(id=tolov.get('bemor_id'))
         return queryset
 
+
+
     @action(detail=True)
     def tolovlar(self, request, pk):
         tolovlar = Tolov.objects.filter(joylashtirish_id__isnull=False, joylashtirish_id__ketish_sanasi__isnull=True)
@@ -151,8 +153,8 @@ class BemorModelViewSet(ModelViewSet):
 class TolovModelViewSet(ModelViewSet):
     queryset = Tolov.objects.all()
     serializer_class = TolovSerializer
-    # authentication_classes = [JWTAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def destroy(self, request, *args, **kwargs):
         tolov = self.get_object()
