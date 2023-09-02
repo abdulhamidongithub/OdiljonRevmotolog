@@ -158,7 +158,7 @@ class TolovModelViewSet(ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         tolov = self.get_object()
-        if tolov.bemor_id.joylashgan == True and tolov.joylashtirish_id.ketish_sanasi is None:
+        if tolov.bemor_id.joylashgan == True and tolov.joylashtirish_id is not None and tolov.joylashtirish_id.ketish_sanasi is None:
             bemor = Bemor.objects.get(id=tolov.bemor_id.id)
             bemor.joylashgan = False
             bemor.save()
