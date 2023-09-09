@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     'rest_framework_simplejwt',
-
+    'django_dump_load_utf8',
     'register',
     'corsheaders',
 ]
@@ -96,6 +96,17 @@ WSGI_APPLICATION = 'Klinika.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'Klinika',
+#         'USER': 'postgres',
+#         'PASSWORD': '1234',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 
 DATABASES = {
     'default': {

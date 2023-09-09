@@ -273,27 +273,22 @@ class TolovModelViewSet(ModelViewSet):
     def update(self, request, *args, **kwargs):
         tolov = request.data
         t = self.get_object()
-        serializer = TolovPatch(t, data=tolov)
-        if serializer.is_valid():
-            t_summa = 0
-            tolangan_amount = serializer.validated_data.get("tolangan_summa")
-            for i in tolangan_amount:
-                t_summa += int(i.get('summa'))
-            if (t.joylashtirish_id is not None and t.joylashtirish_id.ketish_sanasi is not None and t.summa == t_summa) or (t.yollanma_id is not None and t.summa == t_summa):
-                t.tolandi = True
-            elif t.joylashtirish_id is not None and t.joylashtirish_id.ketish_sanasi is not None and t.summa < t_summa:
-                t.tolandi = False
-                t.haqdor = True
-            else:
-                t.tolandi = False
-            t.tolangan_summa = serializer.validated_data.get('tolangan_summa')
-            t.tolangan_sana = serializer.validated_data.get('tolangan_sana')
-            t.xulosa_holati = serializer.validated_data.get('xulosa_holati')
-            t.tolov_qaytarildi = serializer.validated_data.get("tolov_qaytarildi")
-            t.izoh = serializer.validated_data.get("izoh")
-            t.save()
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
-        return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        if tolov.get("xulosa_holati"):
+            serializer = TolovPatchLab(t, data=tolov)
+            if serializer.is_valid():
+                t.xulosa_holati = serializer.validated_data.get('xulosa_holati')
+                t.save()
+                return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        elif tolov.get("tolov_qaytarildi") is not None:
+            serializer = TolovPatch(t, data=tolov)
+            if serializer.is_valid():
+                t.tolov_qaytarildi = serializer.validated_data.get("tolov_qaytarildi")
+                t.izoh = serializer.validated_data.get("izoh")
+                t.save()
+                return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"xabar": "Ma'lumotda kamchilik bor!"}, status=status.HTTP_400_BAD_REQUEST)
 
 class XulosaModelViewSet(ModelViewSet):
     queryset = Xulosa.objects.all()
@@ -501,7 +496,6 @@ class ChekModelViewSet(ModelViewSet):
         serializer = ChekSerializer(data=check_to_be_created)
         if serializer.is_valid():
             with transaction.atomic():
-                serializer.save()
                 tolovlar = check_to_be_created.get('tolov_maqsadlar')
                 for i in tolovlar:
                     tolov = Tolov.objects.get(id=i.get('tolov_id'))
@@ -510,6 +504,7 @@ class ChekModelViewSet(ModelViewSet):
                         tolov.tolangan_sana = check_to_be_created.get('sana')
                         if tolov.yollanma_id:
                             tolov.tolandi = True
+                            tolov.save()
                         else:
                             t = 0
                             for i in tolov.tolangan_summa:
@@ -524,7 +519,8 @@ class ChekModelViewSet(ModelViewSet):
                                 tolov.tolandi = False
                             elif t > tolov.summa:
                                 tolov.tolandi = False
-                    tolov.save()
+                            tolov.save()
+                serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

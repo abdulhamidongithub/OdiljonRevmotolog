@@ -102,12 +102,10 @@ class TolovQaytarishSerializer(ModelSerializer):
         model = TolovQaytarish
         fields = '__all__'
 
+class TolovPatchLab(Serializer):
+    xulosa_holati = serializers.CharField(allow_blank=True, allow_null=True)
 
 class TolovPatch(Serializer):
-    tolangan_summa = serializers.ListField()
-    tolangan_sana = serializers.DateField(allow_null=True)
-    tolandi = serializers.BooleanField()
-    xulosa_holati = serializers.CharField(allow_blank=True, allow_null=True)
     tolov_qaytarildi = serializers.BooleanField(allow_null=True, default=False)
     izoh = serializers.CharField(allow_blank=True, allow_null=True)
 

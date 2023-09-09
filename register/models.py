@@ -42,7 +42,7 @@ class SubYollanma(models.Model):
     nom = models.CharField(max_length=500)
     matn = models.TextField()
     narx = models.IntegerField()
-    yollanma_id = models.ForeignKey(Yollanma, on_delete=models.CASCADE)
+    yollanma_id = models.ForeignKey(Yollanma, on_delete=models.SET_NULL, null=True, blank=True)
     def __str__(self):
         return self.matn
 
@@ -61,7 +61,7 @@ class Joylashtirish(models.Model):
 class Tolov(models.Model):
     bemor_id = models.ForeignKey(Bemor, on_delete=models.SET_NULL, null=True)
     summa = models.PositiveBigIntegerField()
-    tolangan_summa = models.JSONField(null=True, blank=True, default=[])
+    tolangan_summa = models.JSONField(null=True, blank=True, default=list())
     sana = models.DateField(auto_now_add=True)
     turi = models.CharField(choices=(('Naqd', 'Naqd'), ('Plastik', 'Plastik')), blank=True, max_length=50)
     tolandi = models.BooleanField(default=False)  # to'landi, qarzdor
