@@ -261,6 +261,7 @@ class TolovModelViewSet(ModelViewSet):
                 tolangan_amount = serializer.validated_data.get("tolangan_summa")
                 for i in tolangan_amount:
                     t += int(i.get('summa'))
+                t += serializer.validated_data.get("chegirma")
                 if t == serializer.validated_data.get("summa"):
                     serializer.save(xulosa_holati="Topshirilyapti", tolandi=True, haqdor=False)
                 elif t > serializer.validated_data.get("summa"):
@@ -510,6 +511,7 @@ class ChekModelViewSet(ModelViewSet):
                             for i in tolov.tolangan_summa:
                                 if i.get('summa'):
                                     t += i.get("summa")
+                            t += tolov.chegirma
                             if t == tolov.summa and tolov.joylashtirish_id.ketish_sanasi is not None:
                                 tolov.tolandi = True
                             elif t < tolov.summa:
@@ -603,6 +605,7 @@ class TolovlarAPIView(APIView):
         paginated_queryset = paginator.paginate_queryset(queryset, request)
         umumiy_tolanganlar = 0
         qarzdorlik = 0
+        chegirmalar = 0
         if by_date:
             for tolov in queryset:
                 t = 0
@@ -615,6 +618,7 @@ class TolovlarAPIView(APIView):
                 if t <= tolov.summa:
                     qarzdorlik = qarzdorlik + tolov.summa - t
                 umumiy_tolanganlar += sanadagi
+                chegirmalar += tolov.chegirma
         elif from_date and to_date:
             for tolov in queryset:
                 t = 0
@@ -627,6 +631,7 @@ class TolovlarAPIView(APIView):
                 if t <= tolov.summa:
                     qarzdorlik = qarzdorlik + tolov.summa - t
                 umumiy_tolanganlar += sanadagi
+                chegirmalar += tolov.chegirma
         else:
             for tolov in queryset:
                 t = 0
@@ -636,12 +641,13 @@ class TolovlarAPIView(APIView):
                 if t <= tolov.summa:
                     qarzdorlik = qarzdorlik + tolov.summa - t
                 umumiy_tolanganlar += t
+                chegirmalar += tolov.chegirma
         serializer = TolovAdminSerializer(paginated_queryset, many=True)
         import math
         total_pages = math.ceil(len(queryset) / 30)
         return Response({'natija_tolovlar': serializer.data,
                          'umumiy_summa': umumiy_tolanganlar,
-                         "qarzdorlik": qarzdorlik,
+                         "qarzdorlik": qarzdorlik-chegirmalar,
                          "sahifalar_soni": total_pages}, status=status.HTTP_200_OK)
 
 class TolovDeleteAPIView(APIView):
