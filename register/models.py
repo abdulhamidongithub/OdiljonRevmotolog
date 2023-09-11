@@ -61,6 +61,7 @@ class Joylashtirish(models.Model):
 class Tolov(models.Model):
     bemor_id = models.ForeignKey(Bemor, on_delete=models.SET_NULL, null=True)
     summa = models.PositiveBigIntegerField()
+    chegirma = models.PositiveIntegerField(default=0)
     tolangan_summa = models.JSONField(null=True, blank=True, default=list())
     sana = models.DateField(auto_now_add=True)
     turi = models.CharField(choices=(('Naqd', 'Naqd'), ('Plastik', 'Plastik')), blank=True, max_length=50)
