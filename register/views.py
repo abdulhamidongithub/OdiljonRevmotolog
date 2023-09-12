@@ -33,6 +33,7 @@ class BemorModelViewSet(ModelViewSet):
         t_to_date = self.request.query_params.get('tolov_to_date')
         j_id = self.request.query_params.get('joylashtirish_id')
         qayerga = self.request.query_params.get('qayerga')
+        qayerga2 = self.request.query_params.get('qayerga2')
         sana = self.request.query_params.get('sana')
         joylashgan = self.request.query_params.get('joylashgan')
         tolov_sana = self.request.query_params.get('tolov_sana')
@@ -83,18 +84,29 @@ class BemorModelViewSet(ModelViewSet):
         elif t_date and qayerga:
             tolovlar = Tolov.objects.filter(sana=t_date, yollanma_id__qayerga=qayerga).values("bemor_id").distinct() | Tolov.objects.filter(
                 tolangan_sana=t_date, yollanma_id__qayerga=qayerga).values("bemor_id").distinct()
+            if qayerga2:
+                tolovlar = tolovlar | Tolov.objects.filter(sana=t_date, yollanma_id__qayerga=qayerga2).values(
+                    "bemor_id").distinct() | Tolov.objects.filter(
+                    tolangan_sana=t_date, yollanma_id__qayerga=qayerga2).values("bemor_id").distinct()
             queryset = Bemor.objects.none()
             for tolov in tolovlar:
                 queryset = queryset | Bemor.objects.filter(id=tolov.get('bemor_id'))
         elif qayerga and xulosa_holati and ozgartirilgan_sana:
             tolovlar = Tolov.objects.filter(yollanma_id__qayerga=qayerga, ozgartirilgan_sana=ozgartirilgan_sana, xulosa_holati=xulosa_holati).values("bemor_id").distinct() | Tolov.objects.filter(
                 xulosa_holati=xulosa_holati, ozgartirilgan_sana=ozgartirilgan_sana, yollanma_id__qayerga=qayerga).values("bemor_id").distinct()
+            if qayerga2:
+                tolovlar = tolovlar | Tolov.objects.filter(yollanma_id__qayerga=qayerga2, ozgartirilgan_sana=ozgartirilgan_sana, xulosa_holati=xulosa_holati).values("bemor_id").distinct() | Tolov.objects.filter(
+                xulosa_holati=xulosa_holati, ozgartirilgan_sana=ozgartirilgan_sana,
+                    yollanma_id__qayerga=qayerga2).values("bemor_id").distinct()
             queryset = Bemor.objects.none()
             for tolov in tolovlar:
                 queryset = queryset | Bemor.objects.filter(id=tolov.get('bemor_id'))
         elif qayerga and xulosa_holati:
             tolovlar = Tolov.objects.filter(yollanma_id__qayerga=qayerga, xulosa_holati=xulosa_holati).values("bemor_id").distinct() | Tolov.objects.filter(
                 xulosa_holati=xulosa_holati, yollanma_id__qayerga=qayerga).values("bemor_id").distinct()
+            if qayerga2:
+                tolovlar = tolovlar | Tolov.objects.filter(yollanma_id__qayerga=qayerga2, xulosa_holati=xulosa_holati).values("bemor_id").distinct() | Tolov.objects.filter(
+                xulosa_holati=xulosa_holati, yollanma_id__qayerga=qayerga2).values("bemor_id").distinct()
             queryset = Bemor.objects.none()
             for tolov in tolovlar:
                 queryset = queryset | Bemor.objects.filter(id=tolov.get('bemor_id'))
@@ -114,6 +126,10 @@ class BemorModelViewSet(ModelViewSet):
             tolovlar = Tolov.objects.filter(sana__range=(t_from_date, t_to_date),
                                             yollanma_id__qayerga=qayerga).values("bemor_id").distinct() | Tolov.objects.filter(
                 tolangan_sana__range=(t_from_date, t_to_date), yollanma_id__qayerga=qayerga).values("bemor_id").distinct()
+            if qayerga2:
+                tolovlar = tolovlar | Tolov.objects.filter(sana__range=(t_from_date, t_to_date),
+                        yollanma_id__qayerga=qayerga2).values("bemor_id").distinct() | Tolov.objects.filter(
+                tolangan_sana__range=(t_from_date, t_to_date), yollanma_id__qayerga=qayerga2).values("bemor_id").distinct()
             queryset = Bemor.objects.none()
             for tolov in tolovlar:
                 queryset = queryset | Bemor.objects.filter(id=tolov.get('bemor_id'))
