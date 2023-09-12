@@ -105,6 +105,9 @@ class TolovQaytarishSerializer(ModelSerializer):
 class TolovPatchLab(Serializer):
     xulosa_holati = serializers.CharField(allow_blank=True, allow_null=True)
 
+class TolovPatchChegirma(Serializer):
+    chegirma = serializers.IntegerField()
+
 class TolovPatch(Serializer):
     tolov_qaytarildi = serializers.BooleanField(allow_null=True, default=False)
     izoh = serializers.CharField(allow_blank=True, allow_null=True)

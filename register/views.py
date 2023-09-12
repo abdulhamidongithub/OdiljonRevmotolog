@@ -305,6 +305,17 @@ class TolovModelViewSet(ModelViewSet):
                 t.save()
                 return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        elif tolov.get("chegirma"):
+            serializer = TolovPatchChegirma(t, data=tolov)
+            if serializer.is_valid():
+                t.chegirma = serializer.validated_data.get("chegirma")
+                s = 0
+                for i in t.tolangan_summa:
+                    s += i.get("summa")
+                if t.chegirma + s == t.summa:
+                    t.tolandi = True
+                t.save()
+                return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         return Response({"xabar": "Ma'lumotda kamchilik bor!"}, status=status.HTTP_400_BAD_REQUEST)
 
 class XulosaModelViewSet(ModelViewSet):
@@ -424,6 +435,7 @@ class JoylashtirishModelViewSet(ModelViewSet):
                 tolanganlar = 0
                 for i in tolov.tolangan_summa:
                     tolanganlar += i.get('summa')
+                tolanganlar += tolov.chegirma
                 if tolov.summa < tolanganlar:
                     tolov.haqdor = True
                     tolov.tolandi = False
